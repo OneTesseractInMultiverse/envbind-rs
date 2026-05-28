@@ -91,7 +91,7 @@ fn environment_error_display_is_safe() {
 
     assert_eq!(
         error.to_string(),
-        "environment variable TOKEN could not be read: value is not valid Unicode"
+        "environment variable TOKEN read failed: value is not valid Unicode"
     );
 }
 
@@ -101,6 +101,6 @@ fn environment_read_error_display_redacts_adapter_message() {
 
     assert_eq!(
         error.to_string(),
-        "environment variable TOKEN could not be read: adapter read failed"
+        "environment variable TOKEN read failed: adapter read failed"
     );
 }

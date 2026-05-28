@@ -7,18 +7,19 @@ use std::fmt::{self, Display, Formatter};
 /// Environment variable name captured in public errors.
 pub type VariableName = Cow<'static, str>;
 
-/// Failure returned by an environment adapter while reading a variable.
+/// Environment adapter failure during a variable read.
 #[non_exhaustive]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EnvironmentError {
-    /// The variable was present but could not be represented as valid Unicode.
+    /// The variable was present with invalid Unicode.
     NotUnicode,
     /// Adapter-specific read failure.
     Read {
         /// Diagnostic message retained for structured handling.
         ///
-        /// This message is not displayed by default because custom adapters may
-        /// accidentally include raw environment values.
+        /// Display text hides this message by default.
+        ///
+        /// Custom adapters can include raw environment values by mistake.
         message: String,
     },
 }
@@ -94,7 +95,7 @@ pub enum BindError {
         /// Environment variable name.
         name: VariableName,
     },
-    /// Environment adapter failed while reading the variable.
+    /// Environment adapter failed during variable read.
     Environment {
         /// Environment variable name.
         name: VariableName,
@@ -242,7 +243,7 @@ impl Display for BindError {
             Self::Environment { name, source } => {
                 write!(
                     formatter,
-                    "environment variable {name} could not be read: {source}"
+                    "environment variable {name} read failed: {source}"
                 )
             }
             Self::InvalidBoolean { name } => {

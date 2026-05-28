@@ -15,7 +15,7 @@ pub type BoxedValueValidator<T> =
     Box<dyn Fn(T) -> Result<(), ValidationError> + Send + Sync + 'static>;
 
 /// Require a minimum string length.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn min_length(
     minimum: usize,
 ) -> impl Fn(&str) -> Result<(), ValidationError> + Send + Sync + 'static {
@@ -31,7 +31,7 @@ pub fn min_length(
 }
 
 /// Require a maximum string length.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn max_length(
     maximum: usize,
 ) -> impl Fn(&str) -> Result<(), ValidationError> + Send + Sync + 'static {
@@ -48,7 +48,7 @@ pub fn max_length(
 }
 
 /// Require membership in a fixed allowed set.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn one_of<const N: usize>(
     allowed: [&'static str; N],
 ) -> impl Fn(&str) -> Result<(), ValidationError> + Send + Sync + 'static {
@@ -62,7 +62,7 @@ pub fn one_of<const N: usize>(
 }
 
 /// Require a copyable value to belong to a fixed allowed set.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn one_of_values<T, const N: usize>(
     allowed: [T; N],
 ) -> impl Fn(T) -> Result<(), ValidationError> + Send + Sync + 'static
@@ -79,7 +79,7 @@ where
 }
 
 /// Require a numeric value within an inclusive range.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn in_range<T>(
     minimum: T,
     maximum: T,
@@ -99,7 +99,7 @@ where
 }
 
 /// Require a numeric value greater than or equal to a minimum.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn min_value<T>(minimum: T) -> impl Fn(T) -> Result<(), ValidationError> + Send + Sync + 'static
 where
     T: PartialOrd + Copy + Display + Send + Sync + 'static,
@@ -116,7 +116,7 @@ where
 }
 
 /// Require a numeric value less than or equal to a maximum.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn max_value<T>(maximum: T) -> impl Fn(T) -> Result<(), ValidationError> + Send + Sync + 'static
 where
     T: PartialOrd + Copy + Display + Send + Sync + 'static,
@@ -133,7 +133,7 @@ where
 }
 
 /// Require a string to match a regular expression.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn matches_pattern(pattern: &str) -> Result<BoxedStringValidator, regex::Error> {
     let regex = Regex::new(pattern)?;
     let pattern = pattern.to_owned();
@@ -149,13 +149,13 @@ pub fn matches_pattern(pattern: &str) -> Result<BoxedStringValidator, regex::Err
 }
 
 /// Require a string to be a URL with an allowed scheme.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn is_url() -> impl Fn(&str) -> Result<(), ValidationError> + Send + Sync + 'static {
     is_url_with_options(true, ["http", "https"])
 }
 
 /// Require a string to be a URL with configurable scheme rules.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn is_url_with_options<I, S>(
     require_scheme: bool,
     allowed_schemes: I,
@@ -172,7 +172,7 @@ where
 }
 
 /// Require a string to be a common email address shape.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn is_email() -> impl Fn(&str) -> Result<(), ValidationError> + Send + Sync + 'static {
     move |value| {
         let regex = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
@@ -186,7 +186,7 @@ pub fn is_email() -> impl Fn(&str) -> Result<(), ValidationError> + Send + Sync 
 }
 
 /// Combine several string validators.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn all_of_str(
     validators: Vec<BoxedStringValidator>,
 ) -> impl Fn(&str) -> Result<(), ValidationError> + Send + Sync + 'static {
@@ -199,7 +199,7 @@ pub fn all_of_str(
 }
 
 /// Combine several copy-value validators.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn all_of<T>(
     validators: Vec<BoxedValueValidator<T>>,
 ) -> impl Fn(T) -> Result<(), ValidationError> + Send + Sync + 'static
@@ -215,7 +215,7 @@ where
 }
 
 /// Require a `u16` value within an inclusive range.
-#[must_use = "validators should be passed to a variable spec"]
+#[must_use = "pass validators to a variable spec"]
 pub fn u16_in_range(
     minimum: u16,
     maximum: u16,

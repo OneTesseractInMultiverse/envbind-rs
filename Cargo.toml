@@ -1,13 +1,13 @@
 [package]
-name = "subvertic-envbind"
+name = "onetesseractinmultiverse-envbind"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
 description = "Typed environment binding primitives for Rust services."
 readme = "README.md"
 license = "MIT"
-documentation = "https://docs.rs/subvertic-envbind"
-repository = "https://github.com/subvertic/envbind"
+documentation = "https://docs.rs/onetesseractinmultiverse-envbind"
+repository = "https://github.com/OneTesseractInMultiverse/envbind"
 authors = ["Pedro Guzmán"]
 keywords = ["configuration", "environment", "settings", "config", "rust"]
 categories = ["config", "development-tools"]

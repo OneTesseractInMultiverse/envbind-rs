@@ -8,15 +8,15 @@ The project uses semantic versioning.
 
 ### Added
 
-- Initial Envbind crate.
-- `Environment`, `ProcessEnvironment`, and `MapEnvironment`.
-- `Binder` and `Binding`.
-- `ParameterSource`.
-- `StringVar`, `OptionalStringVar`, `BoolVar`, `IntVar`, `FloatVar`, `ListVar`, `JsonVar`, `EnumVar`, `B64DecodedStringVar`, and `U16Var`.
-- Generic optional binding through `BindingExt::optional`.
-- Python EnvBind-compatible empty, default, and sensitivity behavior.
-- Sensitivity-aware boolean validation.
-- Enum name and value aliases.
-- `BindError` and `ValidationError`.
-- Reusable validators for ranges, lengths, membership, regex, configurable URLs, email addresses, and composed validation.
-- Docs, examples, tests, and release checklist.
+Initial Envbind crate with environment adapters, binding traits, typed field
+specs, validation helpers, examples, tests, docs, and release files.
+
+The initial field set includes `StringVar`, `OptionalStringVar`, `BoolVar`,
+`IntVar`, `FloatVar`, `ListVar`, `JsonVar`, `EnumVar`,
+`B64DecodedStringVar`, and `U16Var`.
+
+The initial behavior includes generic optional binding through
+`BindingExt::optional`, Python EnvBind-compatible empty and default handling,
+sensitivity-aware validation, enum name aliases, enum value aliases, stable
+`BindError` codes, and reusable validators for ranges, lengths, membership,
+regex, configurable URLs, email addresses, and composed validation.

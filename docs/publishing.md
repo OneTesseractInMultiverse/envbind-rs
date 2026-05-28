@@ -1,9 +1,8 @@
 # Publishing
 
-This project publishes to crates.io from GitHub Actions. The GitHub repository
-uses the `OneTesseractInMultiverse` namespace. The crates.io package publishes
-as `onetesseractinmultiverse-envbind`. Rust code imports the crate as
-`envbind`.
+This project publishes to crates.io from GitHub Actions. The crates.io package
+publishes as `envbind`. Rust code imports the crate as `envbind`. The GitHub
+repository uses the `OneTesseractInMultiverse` namespace.
 
 The manifest contains the package name, repository URL, docs.rs URL, license,
 author metadata, and crate include list.
@@ -36,7 +35,7 @@ The publishing workflow uses crates.io Trusted Publishing through
 commit SHAs. It requests a short-lived crates.io token through GitHub OpenID
 Connect, then passes that token to `cargo publish`.
 
-Configure the crate on crates.io with these repository values:
+Configure the `envbind` crate on crates.io with these repository values:
 
 | Setting | Value |
 | --- | --- |

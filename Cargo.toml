@@ -1,12 +1,12 @@
 [package]
-name = "onetesseractinmultiverse-envbind"
+name = "envbind"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
 description = "Typed environment binding primitives for Rust services."
 readme = "README.md"
 license = "MIT"
-documentation = "https://docs.rs/onetesseractinmultiverse-envbind"
+documentation = "https://docs.rs/envbind"
 repository = "https://github.com/OneTesseractInMultiverse/envbind"
 authors = ["Pedro Guzmán"]
 keywords = ["configuration", "environment", "settings", "config", "rust"]

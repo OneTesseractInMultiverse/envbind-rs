@@ -1,9 +1,7 @@
 //! Typed environment binding primitives for Rust services.
 //!
-//! Envbind is an open source Rust library for typed configuration. The GitHub
-//! repository uses the `OneTesseractInMultiverse` namespace. The published
-//! package is `onetesseractinmultiverse-envbind`, and Rust code imports it as
-//! `envbind`.
+//! Envbind is an open source Rust library for typed configuration. The
+//! published package and Rust crate name are both `envbind`.
 //!
 //! It is intended for application-boundary configuration in services that
 //! follow hexagonal architecture. Domain and use-case code receive typed

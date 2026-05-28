@@ -26,8 +26,7 @@ Confirm that CI passes on stable Rust and on the declared minimum Rust version.
 Confirm that the RustSec advisory audit passes. Commit or stash local changes
 before release commands that reject dirty working trees.
 
-Confirm that the package name in `Cargo.toml` is
-`onetesseractinmultiverse-envbind`. The Rust library name remains `envbind`.
+Confirm that the package name and Rust library name are both `envbind`.
 
 ## Versioning
 

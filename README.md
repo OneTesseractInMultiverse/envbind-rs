@@ -45,13 +45,13 @@ limit setter.
 
 ## Installation
 
-The GitHub repository uses the `OneTesseractInMultiverse` namespace. The crates.io package uses the lowercase package
-name
-`onetesseractinmultiverse-envbind`. Rust code imports the crate as `envbind`.
+The crates.io package name is `envbind`. The GitHub repository uses the
+`OneTesseractInMultiverse` namespace. Rust code imports the crate as
+`envbind`.
 
 ```toml
 [dependencies]
-onetesseractinmultiverse-envbind = "0.1.0"
+envbind = "0.1.0"
 ```
 
 Then import the Rust crate name:

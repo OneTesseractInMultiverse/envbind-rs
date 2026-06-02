@@ -4,10 +4,11 @@ Envbind is easy to inspect, test, and change. The repository keeps policy files
 near the code, so contributors can find project rules without searching
 external systems.
 
-`LICENSE-MIT` contains the license text. `CONTRIBUTING.md` explains the
+`LICENSE` contains the license text. `CONTRIBUTING.md` explains the
 contribution process. `SECURITY.md` gives the private report channel for
 security issues. `CODE_OF_CONDUCT.md` sets conduct rules. `CHANGELOG.md`
-records user-facing releases.
+records user-facing releases. `SUPPORT.md` routes usage questions, public
+bugs, feature requests, and private security reports.
 
 ## Review Standards
 
@@ -18,6 +19,10 @@ that prove the behavior, and any public API or error contract change.
 Review focuses on correctness, clear boundaries, tests, and documentation. A
 change that mixes environment reads with parsing needs revision. A change that
 prints raw values needs revision.
+
+GitHub issue templates collect reproducible bug reports and focused feature
+requests. The pull request template records validation commands and release
+notes work. `CODEOWNERS` marks the default maintainer for review routing.
 
 ## Dependency Policy
 

@@ -1,0 +1,40 @@
+name: Feature Request
+description: Propose a focused public API, parser, validator, or docs change.
+title: "Feature: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please keep requests focused on typed configuration binding for Rust services.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the configuration task that is hard today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Describe the API, behavior, or documentation change.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Existing options
+      description: Describe current workarounds or existing crates that cover this task.
+    validations:
+      required: false
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This request keeps raw environment reads at the application boundary.
+          required: true
+        - label: This request does not expose raw environment values in error text.
+          required: true

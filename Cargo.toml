@@ -1,13 +1,13 @@
 [package]
 name = "envbind"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 rust-version = "1.85"
 description = "Typed environment binding primitives for Rust services."
 readme = "README.md"
 license = "MIT"
 documentation = "https://docs.rs/envbind"
-repository = "https://github.com/OneTesseractInMultiverse/envbind"
+repository = "https://github.com/OneTesseractInMultiverse/envbind-rs"
 authors = ["Pedro Guzmán"]
 keywords = ["configuration", "environment", "settings", "config", "rust"]
 categories = ["config", "development-tools"]
@@ -19,9 +19,10 @@ include = [
   "SECURITY.md",
   "docs/**",
   "examples/**",
-  "LICENSE-MIT",
+  "LICENSE",
   "Makefile",
   "README.md",
+  "SUPPORT.md",
   "src/**",
   "tests/**",
 ]

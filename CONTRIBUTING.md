@@ -29,6 +29,10 @@ and role in parser or validator behavior.
 
 ## Pull Request Checklist
 
+Open an issue before a large API change. Use the issue templates for bugs and
+feature requests. Use GitHub Discussions for usage questions or broad design
+discussion.
+
 Run these commands before opening a pull request:
 
 ```sh

@@ -1,5 +1,13 @@
 # Security Policy
 
+## Supported Versions
+
+The latest published minor line receives vulnerability fixes.
+
+| Version | Status |
+| --- | --- |
+| `0.1.x` | Supported |
+
 ## Reporting a Vulnerability
 
 Please report suspected vulnerabilities privately to

@@ -4,7 +4,14 @@ User-facing changes are tracked in this file.
 
 The project uses semantic versioning.
 
-## 0.1.0 - Unreleased
+## 0.1.1 - 2026-05-28
+
+### Fixed
+
+Corrected the crates.io repository metadata to point at
+`OneTesseractInMultiverse/envbind-rs`.
+
+## 0.1.0 - 2026-05-28
 
 ### Added
 

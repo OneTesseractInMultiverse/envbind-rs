@@ -2,7 +2,7 @@
 
 This project publishes to crates.io from GitHub Actions. The crates.io package
 publishes as `envbind`. Rust code imports the crate as `envbind`. The GitHub
-repository uses the `OneTesseractInMultiverse` namespace.
+repository is `OneTesseractInMultiverse/envbind-rs`.
 
 The manifest contains the package name, repository URL, docs.rs URL, license,
 author metadata, and crate include list.
@@ -12,7 +12,7 @@ Rustdoc receives the `docsrs` cfg, so code can document docs.rs-specific
 conditions without affecting normal builds.
 
 The package include list ships source, tests, examples, README, `/docs`,
-project policy files, `Makefile`, and `LICENSE-MIT`. It leaves out build
+project policy files, `Makefile`, `SUPPORT.md`, and `LICENSE`. It leaves out build
 output and local machine files.
 
 ## Release Flow
@@ -40,7 +40,7 @@ Configure the `envbind` crate on crates.io with these repository values:
 | Setting | Value |
 | --- | --- |
 | GitHub owner or organization | `OneTesseractInMultiverse` |
-| Repository | `envbind` |
+| Repository | `envbind-rs` |
 | Workflow | `publish.yml` |
 | Environment | `crates-io` |
 

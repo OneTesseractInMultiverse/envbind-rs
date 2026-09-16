@@ -4,6 +4,15 @@ User-facing changes are tracked in this file.
 
 The project uses semantic versioning.
 
+## Unreleased
+
+### Fixed
+
+Redacted adapter diagnostic messages in `EnvironmentError` debug output,
+including nested binding errors, error sources, and errors returned from `main`.
+The original message remains available through the public field for structured
+handling. Fixes [#8](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/8).
+
 ## 0.1.1 - 2026-05-28
 
 ### Fixed

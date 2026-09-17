@@ -13,6 +13,17 @@ including nested binding errors, error sources, and errors returned from `main`.
 The original message remains available through the public field for structured
 handling. Fixes [#8](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/8).
 
+Replaced URL string splitting with the `url` parser. Explicit schemes now obey
+the allowlist even when the scheme is optional, and missing hosts, malformed
+IPv6, and invalid ports fail validation. Error messages never include URL
+credentials. Fixes [#9](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/9).
+
+URL validation now requires a `//` prefix for scheme-less ports, credentials,
+and IPv6 authorities, such as `//localhost:8080`. Bare hostnames remain valid
+when the scheme is optional. Raw whitespace, control characters, backslashes,
+and relative path references are rejected. The original bound string is
+preserved; see the [URL validation guide](docs/api-guide.md#url-validation).
+
 ## 0.1.1 - 2026-05-28
 
 ### Fixed

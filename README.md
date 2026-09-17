@@ -188,6 +188,13 @@ assert_eq!(port, 8080);
 # Ok::<(), envbind::BindError>(())
 ```
 
+`validators::is_url()` parses HTTP/HTTPS URLs and requires a host and a valid port when supplied.
+`is_url_with_options` supports custom schemes and optional schemes. Every explicit scheme is checked against the
+allowlist. Optional-scheme input accepts bare hostnames; prefix authorities containing ports, credentials, or IPv6
+with `//`, as in `//localhost:8080` or `//[::1]:443`.
+Raw whitespace, control characters, and backslashes are rejected. Validation preserves the original string.
+See [URL Validation](docs/api-guide.md#url-validation) for the accepted forms and compatibility changes.
+
 ## Python EnvBind Parity
 
 Rust uses typed binding specs instead of Python descriptors. The field set maps to the Python package in a direct way.

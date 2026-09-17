@@ -79,9 +79,11 @@ Field specs apply safe defaults. General raw values have a byte limit. JSON and
 base64 specs add type-specific limits. List specs limit item count before they
 allocate a large vector. Callers raise limits through explicit setters.
 
-Adapter read errors store adapter messages for structured use. Display text
-uses a generic message. This prevents custom adapters from leaking raw values
-through logs.
+Adapter read errors store adapter messages for structured use. `Display` uses
+a generic message, and `Debug` replaces the diagnostic with `[redacted]` while
+preserving the variant name. Nested binding errors and `Error::source()` use
+the same redacted formatters, including alternate debug formatting. Direct
+access to the stored message remains possible and must be treated as sensitive.
 
 The error enums are non-exhaustive. Compatible releases can add failure modes
 without breaking downstream matches.

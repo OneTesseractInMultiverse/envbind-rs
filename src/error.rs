@@ -2,14 +2,17 @@
 
 use std::borrow::Cow;
 use std::error::Error;
-use std::fmt::{self, Display, Formatter};
+use std::fmt::{self, Debug, Display, Formatter};
 
 /// Environment variable name captured in public errors.
 pub type VariableName = Cow<'static, str>;
 
 /// Environment adapter failure during a variable read.
+///
+/// [`Display`] and [`Debug`] redact adapter-specific diagnostic messages,
+/// including when this error is the source of a [`BindError`].
 #[non_exhaustive]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum EnvironmentError {
     /// The variable was present with invalid Unicode.
     NotUnicode,
@@ -17,7 +20,8 @@ pub enum EnvironmentError {
     Read {
         /// Diagnostic message retained for structured handling.
         ///
-        /// Display text hides this message by default.
+        /// `Display` and `Debug` hide this message, including alternate debug
+        /// formatting. Accessing the field directly returns the original text.
         ///
         /// Custom adapters can include raw environment values by mistake.
         message: String,
@@ -36,6 +40,18 @@ impl EnvironmentError {
     pub fn read(message: impl Into<String>) -> Self {
         Self::Read {
             message: message.into(),
+        }
+    }
+}
+
+impl Debug for EnvironmentError {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::NotUnicode => formatter.write_str("NotUnicode"),
+            Self::Read { .. } => formatter
+                .debug_struct("Read")
+                .field("message", &"[redacted]")
+                .finish(),
         }
     }
 }

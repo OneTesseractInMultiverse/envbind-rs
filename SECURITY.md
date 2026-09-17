@@ -29,4 +29,6 @@ JSON, base64, and list inputs.
 
 Errors name the variable and failure class. They do not echo the raw value.
 Adapter read errors keep custom messages for structured handling, but display
-text stays generic.
+text stays generic and debug output redacts them. This applies to alternate
+debug formatting, nested binding errors, and formatting through `Error::source()`.
+Explicit access to the stored adapter message can expose sensitive data.

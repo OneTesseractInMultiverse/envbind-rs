@@ -72,6 +72,13 @@ let settings = Settings::from_process_environment()?;
 Adapter read failures return `BindError` with code `environment_error`. One
 example is non-Unicode data in the process environment.
 
+Custom adapter diagnostics are redacted by both `Display` and `Debug`, including
+alternate debug formatting, nested `BindError` output, and `Error::source()`
+formatting. This also protects error output when `main` returns a binding error.
+The `message` field of `EnvironmentError::Read` retains the original diagnostic
+for explicit structured handling. Treat direct access to that field as
+potentially sensitive.
+
 Use `MapEnvironment` for tests and deterministic examples. It avoids process
 state and keeps each test self-contained.
 

@@ -220,6 +220,10 @@ Binding failures return `BindError`. Each variant maps to a stable
 
 Display text does not include raw environment values. Callers often bind credentials or private deployment settings.
 
+Adapter read errors hide their diagnostic messages in both `Display` and `Debug`, including alternate debug
+formatting and errors returned from `main`. The `message` field of `EnvironmentError::Read` retains the original
+diagnostic for explicit structured handling; treat that field as potentially sensitive.
+
 ```rust
 # use envbind::{Binder, MapEnvironment, U16Var};
 let error_code = Binder::new(MapEnvironment::from_pairs([("PORT", "abc")]))

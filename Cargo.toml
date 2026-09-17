@@ -31,6 +31,10 @@ include = [
 name = "envbind"
 path = "src/lib.rs"
 
+[[test]]
+name = "error_exit"
+harness = false
+
 [package.metadata.docs.rs]
 all-features = true
 targets = []

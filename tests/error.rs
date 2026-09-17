@@ -1,5 +1,7 @@
 #![allow(missing_docs)]
 
+use std::error::Error;
+
 use envbind::{BindError, EnvironmentError, ValidationError};
 
 #[test]
@@ -102,5 +104,95 @@ fn environment_read_error_display_redacts_adapter_message() {
     assert_eq!(
         error.to_string(),
         "environment variable TOKEN read failed: adapter read failed"
+    );
+}
+
+#[test]
+fn adapter_read_error_display_redacts_message() {
+    let error = EnvironmentError::read("synthetic-secret-value");
+
+    assert_eq!(error.to_string(), "adapter read failed");
+}
+
+#[test]
+fn adapter_read_error_debug_redacts_message() {
+    let error = EnvironmentError::read("synthetic-secret-value");
+
+    assert_eq!(format!("{error:?}"), "Read { message: \"[redacted]\" }");
+}
+
+#[test]
+fn adapter_read_error_pretty_debug_redacts_message() {
+    let error = EnvironmentError::read("synthetic-secret-value");
+
+    assert_eq!(
+        format!("{error:#?}"),
+        "Read {\n    message: \"[redacted]\",\n}"
+    );
+}
+
+#[test]
+fn not_unicode_debug_keeps_variant_name() {
+    let error = EnvironmentError::not_unicode();
+
+    assert_eq!(
+        [format!("{error:?}"), format!("{error:#?}")],
+        ["NotUnicode", "NotUnicode"]
+    );
+}
+
+#[test]
+fn bind_environment_error_formats_redact_adapter_message() {
+    let error = BindError::environment("TOKEN", EnvironmentError::read("synthetic-secret-value"));
+    let outputs = [
+        error.to_string(),
+        format!("{error:?}"),
+        format!("{error:#?}"),
+    ];
+
+    assert!(
+        outputs
+            .iter()
+            .all(|output| !output.contains("synthetic-secret-value"))
+    );
+}
+
+#[test]
+fn bind_environment_error_source_formats_redact_adapter_message() {
+    let error = BindError::environment("TOKEN", EnvironmentError::read("synthetic-secret-value"));
+    let redacted = error.source().map(|source| {
+        [
+            source.to_string(),
+            format!("{source:?}"),
+            format!("{source:#?}"),
+        ]
+        .iter()
+        .all(|output| !output.contains("synthetic-secret-value"))
+    });
+
+    assert_eq!(redacted, Some(true));
+}
+
+#[test]
+fn bind_environment_error_retains_structured_diagnostic() {
+    let error = BindError::environment("TOKEN", EnvironmentError::read("synthetic-secret-value"));
+    let message = error
+        .source()
+        .and_then(|source| source.downcast_ref::<EnvironmentError>())
+        .and_then(|source| match source {
+            EnvironmentError::Read { message } => Some(message.as_str()),
+            _ => None,
+        });
+
+    assert_eq!(message, Some("synthetic-secret-value"));
+}
+
+#[test]
+fn bind_environment_error_keeps_variable_context() {
+    let error = BindError::environment("TOKEN", EnvironmentError::read("synthetic-secret-value"));
+
+    assert_eq!(
+        (error.error_code(), error.variable_name()),
+        ("environment_error", "TOKEN")
     );
 }

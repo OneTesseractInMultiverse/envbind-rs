@@ -44,6 +44,11 @@ rustdoc-args = ["--cfg", "docsrs"]
 base64 = "0.22"
 regex = "1"
 serde_json = "1"
+url = "2.5.8"
+# Keep url's ICU derive dependency compatible with Rust 1.85. Version 0.8.3
+# uses str::from_utf8 without declaring the newer Rust requirement. Remove
+# this constraint once a compatible upstream release passes the MSRV tests.
+yoke-derive = "=0.8.2"
 
 [lints.rust]
 missing_docs = "deny"

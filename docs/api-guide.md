@@ -258,3 +258,51 @@ assert_eq!(value, "prod");
 
 Validation messages must be safe to display. Values are sensitive by default,
 and `.sensitive(false)` shows custom validation details.
+
+### URL Validation
+
+`validators::is_url()` uses the `url` crate's WHATWG URL parser and accepts
+HTTP/HTTPS URLs with a nonempty host. Ports, when supplied, must parse as a
+`u16`; both 0 and 65,535 are valid syntax. Localhost, IPv4, bracketed IPv6,
+internationalized domain names, and credentials in the authority are supported.
+Validation does not perform DNS lookups or check whether a service is reachable.
+
+Use `is_url_with_options(require_scheme, allowed_schemes)` for other schemes.
+Explicit schemes are always checked against the allowlist, ignoring ASCII
+case. This includes forms without `://`: `https:example.com` has the scheme
+`https`, while `http:example.com` fails an HTTPS-only allowlist even when
+`require_scheme` is false. Configured custom schemes such as
+`postgres://db.example.com:5432/service` must also have a host. Hostless URLs
+such as `mailto:user@example.com` are rejected even if their scheme is allowed.
+
+When `require_scheme` is false, the following forms are supported:
+
+| Form | Example |
+| --- | --- |
+| Bare hostname or IPv4, with optional path, query, and fragment | `example.com/path?key=value#part` |
+| Authority with a port, prefixed by `//` | `//localhost:8080/path` |
+| Bracketed IPv6, prefixed by `//` | `//[::1]:8443/path` |
+| Credentials in an authority, prefixed by `//` | `//user:password@example.com:443/path` |
+| Absolute URL with an allowed scheme | `https://example.com/path` |
+
+Scheme-less authorities with ports, credentials, or IPv6 require `//`.
+A syntactically valid scheme prefix is always treated as an explicit scheme,
+so use `//example.com:443` instead of `example.com:443`. Relative paths such as
+`/path`, `./path`, and `../path`, and query-only or fragment-only references,
+are rejected.
+
+Scheme-less input uses an internal HTTPS prefix only to validate the host and
+port. The prefix is not checked against the allowlist, so an empty allowlist
+still permits scheme-less input when the scheme is optional. Validation never
+adds a scheme to the bound string or replaces it with the parser's normalized
+output.
+
+Raw whitespace, control characters, and backslashes are rejected in all modes.
+Use percent encoding where appropriate, such as `https://example.com/a%20b`.
+URL validation failures use fixed messages that never include the URL or its
+credentials, including when the field uses `.sensitive(false)`.
+
+These rules tighten the previous string-splitting validator: missing hosts,
+malformed IPv6, invalid ports, disallowed explicit schemes without `://`, and
+ambiguous scheme-less authorities now fail. Migrate scheme-less ports and
+credentials to the explicit `//` form, or supply an allowed absolute URL.

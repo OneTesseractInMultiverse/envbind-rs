@@ -3,6 +3,7 @@
 use std::fmt::Display;
 
 use regex::Regex;
+use url::{ParseError, Url};
 
 use crate::error::ValidationError;
 
@@ -148,13 +149,37 @@ pub fn matches_pattern(pattern: &str) -> Result<BoxedStringValidator, regex::Err
     }))
 }
 
-/// Require a string to be a URL with an allowed scheme.
+/// Require an absolute HTTP or HTTPS URL with a host and a valid optional port.
+///
+/// Raw whitespace, control characters, and backslashes are rejected. Validation
+/// uses the URL parser's syntax rules without changing the original value.
 #[must_use = "pass validators to a variable spec"]
 pub fn is_url() -> impl Fn(&str) -> Result<(), ValidationError> + Send + Sync + 'static {
     is_url_with_options(true, ["http", "https"])
 }
 
 /// Require a string to be a URL with configurable scheme rules.
+///
+/// Explicit schemes are always checked against `allowed_schemes`, ignoring
+/// ASCII case, even when the scheme is optional. Every URL must have a host.
+///
+/// When `require_scheme` is false, a bare hostname or IPv4 address may include
+/// a path, query, or fragment. Prefix an authority with `//` to include a port,
+/// credentials, or a bracketed IPv6 address: for example, `//localhost:8080`.
+/// A syntactically valid scheme prefix is treated as an explicit scheme even
+/// without `://`; use `//` to mark an authority containing a port.
+///
+/// Scheme-less input is parsed with an internal HTTPS prefix solely to validate
+/// its host and port. That prefix is not subject to the scheme allowlist and
+/// does not change the bound string. Relative paths, raw whitespace, control
+/// characters, and backslashes are rejected.
+///
+/// ```
+/// use envbind::validators;
+///
+/// let validate = validators::is_url_with_options(false, ["https"]);
+/// assert_eq!(validate("//localhost:8443/path"), Ok(()));
+/// ```
 #[must_use = "pass validators to a variable spec"]
 pub fn is_url_with_options<I, S>(
     require_scheme: bool,
@@ -236,26 +261,60 @@ fn validate_url(
     require_scheme: bool,
     allowed_schemes: &[String],
 ) -> Result<(), ValidationError> {
-    let (scheme, rest) = match value.split_once("://") {
-        Some((scheme, rest)) => (Some(scheme.to_ascii_lowercase()), rest),
-        None if require_scheme => {
+    if value.contains('\\')
+        || value
+            .chars()
+            .any(|character| character.is_whitespace() || character.is_control())
+    {
+        return Err(ValidationError::new("value must be a valid URL"));
+    }
+
+    let parsed = match Url::parse(value) {
+        Ok(parsed) => {
+            if !allowed_schemes
+                .iter()
+                .any(|scheme| scheme == parsed.scheme())
+            {
+                return Err(ValidationError::new("URL scheme is not allowed"));
+            }
+            parsed
+        }
+        Err(ParseError::RelativeUrlWithoutBase) if require_scheme => {
             return Err(ValidationError::new("URL must include a scheme"));
         }
-        None => (None, value.trim_start_matches("//")),
+        Err(ParseError::RelativeUrlWithoutBase) => parse_schemeless_url(value)?,
+        Err(_) => return Err(ValidationError::new("value must be a valid URL")),
     };
 
-    if let Some(scheme) = scheme {
-        if !allowed_schemes.contains(&scheme) {
-            return Err(ValidationError::new("URL scheme is not allowed"));
-        }
-    }
-
-    let host = rest.split(['/', '?', '#']).next().unwrap_or_default();
-    if host.is_empty() {
+    if parsed.host_str().is_none_or(str::is_empty) {
         return Err(ValidationError::new("URL must include a host"));
     }
-    if host.chars().any(char::is_whitespace) {
-        return Err(ValidationError::new("URL host must not contain whitespace"));
-    }
     Ok(())
+}
+
+fn parse_schemeless_url(value: &str) -> Result<Url, ValidationError> {
+    let authority = if let Some(authority) = value.strip_prefix("//") {
+        authority
+    } else {
+        let host = value.split(['/', '?', '#']).next().unwrap_or_default();
+        if host.contains([':', '@', '[', ']']) {
+            return Err(ValidationError::new(
+                "scheme-less ports, credentials, and IPv6 hosts must use a // prefix",
+            ));
+        }
+        value
+    };
+
+    // Reject relative references instead of letting the URL parser repair them
+    // into an authority when the synthetic scheme is added.
+    if authority.is_empty()
+        || authority.starts_with(['/', '?', '#'])
+        || authority.starts_with("./")
+        || authority.starts_with("../")
+    {
+        return Err(ValidationError::new("URL must include a host"));
+    }
+
+    Url::parse(&format!("https://{authority}"))
+        .map_err(|_| ValidationError::new("value must be a valid URL"))
 }

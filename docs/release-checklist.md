@@ -40,7 +40,10 @@ existing codes as breaking changes. A clear bug fix is the only exception.
 ## Final Checks
 
 Confirm the release tag matches the package version. Use
-`vMAJOR.MINOR.PATCH`, such as `v0.1.0`.
+`vMAJOR.MINOR.PATCH`, such as `v0.1.1`, with any SemVer prerelease or build
+suffix matching `Cargo.toml` exactly. The `v` prefix is required. Manual runs
+also accept `refs/tags/v0.1.1`; the ref must exist as a tag, not just a branch.
+Confirm that the release workflow regression tests pass in CI.
 
 Confirm that `SECURITY.md` lists the private report address. Confirm that
 README links use relative paths for repository docs.

@@ -8,6 +8,12 @@ The project uses semantic versioning.
 
 ### Fixed
 
+Prevented shell injection through release tag inputs. The release workflow
+validates tags before checkout, passes inputs as environment data, and checks
+fully qualified tag refs and manifest versions before publishing. Release tags
+now require the documented `v` prefix; manual runs also accept `refs/tags/v...`.
+Fixes [#10](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/10).
+
 Redacted adapter diagnostic messages in `EnvironmentError` debug output,
 including nested binding errors, error sources, and errors returned from `main`.
 The original message remains available through the public field for structured

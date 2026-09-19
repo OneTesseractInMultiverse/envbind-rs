@@ -26,7 +26,22 @@ validate a tag without publishing. Manual runs can publish with the `publish`
 input after approval through the protected environment.
 
 Release tags match the package version in `Cargo.toml`. Use
-`vMAJOR.MINOR.PATCH`, such as `v0.1.0`.
+`vMAJOR.MINOR.PATCH`, such as `v0.1.1`. SemVer prerelease and build suffixes are
+supported, for example `v1.2.3-rc.1+build.001`. Manual runs also accept the fully
+qualified form `refs/tags/v0.1.1`. The `v` prefix is required; bare versions,
+branch names, commit hashes, and malformed versions are rejected.
+
+A separate job validates the tag before either checkout. Tag inputs travel
+through environment variables and are read as data, never inserted into a
+shell script. Both jobs check out the validated `refs/tags/...` ref, verify
+that it points to the checked-out commit, and compare its version with the
+manifest before installing release tools or authenticating with crates.io.
+Annotated and lightweight tags are supported. A branch with the same name
+cannot substitute for a missing tag.
+
+CI runs local regression tests for the release workflow, including hostile
+tag inputs and manual validation-only behavior. See the
+[workflow test instructions](testing-guide.md#release-workflow-tests).
 
 ## Trusted Publishing
 

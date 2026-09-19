@@ -39,6 +39,29 @@ environment variables.
 `make verify` is the main local gate. It runs formatting checks, Cargo check,
 Clippy, tests, rustdoc examples, and docs.rs-style docs.
 
+## Release Workflow Tests
+
+The separate `Release workflow tests` CI job checks the scripts and security
+controls in `.github/workflows/publish.yml`. Run it locally with Python 3.11
+or newer and Git:
+
+```sh
+python3 -m venv /tmp/envbind-workflow-tests
+/tmp/envbind-workflow-tests/bin/python3 -m pip install -r .github/tests/requirements.txt
+/tmp/envbind-workflow-tests/bin/python3 -B -m unittest discover -s .github/tests -v
+```
+
+These integration tests create temporary local repositories and execute the
+scripts extracted from the workflow. They cover tag syntax, shell-injection
+payloads, manifest version matching, annotated and lightweight tags, missing
+tags, checkout mismatches, and the validation-only publishing gate. They never
+dispatch workflows, contact a registry, or publish a package. Git identity and
+configuration are isolated from the developer's settings.
+
+PyYAML 6.0.3 is a pinned, MIT-licensed test dependency used to read the actual
+workflow YAML. It has no runtime dependencies and is excluded from the Rust
+crate package. Maintain its pin with the other CI tooling dependencies.
+
 ## Coverage Expectations
 
 A field type needs tests for present values, missing values, explicit empty

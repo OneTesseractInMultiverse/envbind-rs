@@ -80,6 +80,11 @@ jobs:
     name: Validate release package
     needs: resolve-tag
     runs-on: ubuntu-latest
+    outputs:
+      commit: ${{ steps.source.outputs.commit }}
+      toolchain: ${{ steps.record.outputs.toolchain }}
+      metadata_sha256: ${{ steps.record.outputs.metadata_sha256 }}
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
@@ -87,6 +92,7 @@ jobs:
           persist-credentials: false
 
       - name: Check tag matches Cargo.toml version
+        id: source
         env:
           RELEASE_TAG: ${{ needs.resolve-tag.outputs.tag }}
         shell: python
@@ -111,8 +117,11 @@ jobs:
                   sys.exit("::error::Release tag must exist and point to a commit")
               return result.stdout.strip()
 
-          if commit(f"refs/tags/{tag}^{{commit}}") != commit("HEAD"):
+          head = commit("HEAD")
+          if commit(f"refs/tags/{tag}^{{commit}}") != head:
               sys.exit("::error::Checked-out commit does not match the release tag")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"commit={head}\n")
 
       - name: Install Rust
         run: |
@@ -124,27 +133,95 @@ jobs:
 
       - name: Audit dependencies
         run: |
+          mkdir -p target/release
           cargo generate-lockfile
-          cargo audit
-          rm -f Cargo.lock
+          cargo audit --json > target/release/audit.json
+          cp Cargo.lock target/release/Cargo.lock
 
       - name: Verify
-        run: make verify
+        run: make verify CARGO="cargo --locked"
 
       - name: Inspect package contents
-        run: make package-list
+        run: make package-list CARGO="cargo --locked"
 
       - name: Package
-        run: make package
+        run: make package CARGO="cargo --locked"
 
       - name: Publish dry run
-        run: make publish-dry-run
+        run: cargo publish --locked --dry-run
 
-      - name: Upload crate package
+      - name: Record validated release
+        id: record
+        env:
+          RELEASE_TAG: ${{ needs.resolve-tag.outputs.tag }}
+          VALIDATED_COMMIT: ${{ steps.source.outputs.commit }}
+          RELEASE_RUN_ID: ${{ github.run_id }}
+          RELEASE_RUN_ATTEMPT: ${{ github.run_attempt }}
+        shell: python
+        run: |
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import re
+          import shutil
+          import subprocess
+          import sys
+          import tarfile
+          import tomllib
+
+          def require(condition, message):
+              if not condition:
+                  sys.exit(f"::error::{message}")
+
+          def digest(path):
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+
+          bundle = Path("target/release")
+          package = tomllib.loads(Path("Cargo.toml").read_text())["package"]
+          name, version = package["name"], package["version"]
+          commit = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          require(commit == os.environ["VALIDATED_COMMIT"], "Source commit changed during validation")
+          require(os.environ["RELEASE_TAG"] == f"v{version}", "Release version changed during validation")
+          require(
+              Path("Cargo.lock").read_bytes() == (bundle / "Cargo.lock").read_bytes(),
+              "Lockfile changed after the dependency audit",
+          )
+          archive = Path("target/package") / f"{name}-{version}.crate"
+          with tarfile.open(archive, "r:gz") as crate:
+              locked = crate.extractfile(f"{name}-{version}/Cargo.lock").read()
+              vcs = json.load(crate.extractfile(f"{name}-{version}/.cargo_vcs_info.json"))
+          require(locked == (bundle / "Cargo.lock").read_bytes(), "Packaged lockfile differs from audited lockfile")
+          require(vcs["git"]["sha1"] == commit and not vcs["git"].get("dirty", False), "Package source identity does not match validation")
+
+          toolchain = subprocess.check_output(["rustc", "--version"], text=True).split()[1]
+          require(re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", toolchain), "Release requires a stable Rust version")
+          shutil.copyfile(archive, bundle / "package.crate")
+          metadata = {
+              "schema": 1,
+              "tag": os.environ["RELEASE_TAG"],
+              "commit": commit,
+              "package_name": name,
+              "package_version": version,
+              "toolchain": toolchain,
+              "cargo_version": subprocess.check_output(["cargo", "--version"], text=True).strip(),
+              "lockfile_sha256": digest(bundle / "Cargo.lock"),
+              "audit_sha256": digest(bundle / "audit.json"),
+              "crate_sha256": digest(bundle / "package.crate"),
+              "run_id": os.environ["RELEASE_RUN_ID"],
+              "run_attempt": os.environ["RELEASE_RUN_ATTEMPT"],
+          }
+          manifest = bundle / "release.json"
+          manifest.write_text(json.dumps(metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+              output.write(f"toolchain={toolchain}\nmetadata_sha256={digest(manifest)}\n")
+
+      - name: Upload validated release
+        id: upload
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
-          name: envbind-crate
-          path: target/package/*.crate
+          name: envbind-release-${{ github.run_id }}-${{ github.run_attempt }}
+          path: target/release/
           if-no-files-found: error
 
   publish:
@@ -156,44 +233,116 @@ jobs:
     permissions:
       contents: read
       id-token: write
+    env:
+      RELEASE_TAG: ${{ needs.resolve-tag.outputs.tag }}
+      VALIDATED_COMMIT: ${{ needs.validate.outputs.commit }}
+      RELEASE_METADATA_SHA256: ${{ needs.validate.outputs.metadata_sha256 }}
+      RELEASE_TOOLCHAIN: ${{ needs.validate.outputs.toolchain }}
+      RELEASE_RUN_ID: ${{ github.run_id }}
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
         with:
-          ref: ${{ needs.resolve-tag.outputs.ref }}
+          ref: ${{ needs.validate.outputs.commit }}
           persist-credentials: false
 
       - name: Check tag matches Cargo.toml version
-        env:
-          RELEASE_TAG: ${{ needs.resolve-tag.outputs.tag }}
         shell: python
         run: |
           import os
+          import re
           import subprocess
           import sys
           import tomllib
 
-          tag = os.environ["RELEASE_TAG"]
+          expected = os.environ["VALIDATED_COMMIT"]
+          head = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          if not re.fullmatch(r"[0-9a-f]{40}", expected) or head != expected:
+              sys.exit("::error::Checked-out commit does not match the validated source")
           with open("Cargo.toml", "rb") as manifest:
               version = tomllib.load(manifest)["package"]["version"]
-          if tag != f"v{version}":
+          if os.environ["RELEASE_TAG"] != f"v{version}":
               sys.exit("::error::Release tag does not match Cargo.toml version")
 
-          def commit(ref):
-              result = subprocess.run(
-                  ["git", "rev-parse", "--verify", ref],
-                  capture_output=True, text=True,
+      - name: Download validated release
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          artifact-ids: ${{ needs.validate.outputs.artifact_id }}
+          path: target/release
+
+      - name: Verify release bundle and restore lockfile
+        env:
+          RELEASE_STAGE: restore
+        shell: python
+        run: &verify_release_bundle |
+          import hashlib
+          import json
+          import os
+          from pathlib import Path
+          import shutil
+          import subprocess
+          import sys
+          import tomllib
+
+          def require(condition, message):
+              if not condition:
+                  sys.exit(f"::error::{message}")
+
+          def digest(path):
+              return hashlib.sha256(path.read_bytes()).hexdigest()
+
+          bundle = Path("target/release")
+          require(digest(bundle / "release.json") == os.environ["RELEASE_METADATA_SHA256"], "Release metadata checksum mismatch")
+          metadata = json.loads((bundle / "release.json").read_text())
+          package = tomllib.loads(Path("Cargo.toml").read_text())["package"]
+          head = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+          require(
+              metadata["schema"] == 1
+              and metadata["commit"] == head == os.environ["VALIDATED_COMMIT"]
+              and metadata["tag"] == os.environ["RELEASE_TAG"]
+              and metadata["package_name"] == package["name"]
+              and metadata["package_version"] == package["version"]
+              and metadata["toolchain"] == os.environ["RELEASE_TOOLCHAIN"]
+              and metadata["run_id"] == os.environ["RELEASE_RUN_ID"],
+              "Release metadata does not match the validated inputs",
+          )
+          for filename, key in [
+              ("Cargo.lock", "lockfile_sha256"),
+              ("audit.json", "audit_sha256"),
+              ("package.crate", "crate_sha256"),
+          ]:
+              require(digest(bundle / filename) == metadata[key], "Release artifact checksum mismatch")
+
+          stage = os.environ["RELEASE_STAGE"]
+          require(stage in {"restore", "compare", "publish"}, "Unsupported release verification stage")
+          if stage == "restore":
+              shutil.copyfile(bundle / "Cargo.lock", "Cargo.lock")
+          else:
+              require(digest(Path("Cargo.lock")) == metadata["lockfile_sha256"], "Audited lockfile changed")
+              archive = Path("target/package") / f"{package['name']}-{package['version']}.crate"
+              require(digest(archive) == metadata["crate_sha256"], "Rebuilt package differs from validated package")
+              require(
+                  subprocess.check_output(["rustc", "--version"], text=True).split()[1] == metadata["toolchain"]
+                  and subprocess.check_output(["cargo", "--version"], text=True).strip() == metadata["cargo_version"],
+                  "Release toolchain differs from validation",
               )
-              if result.returncode:
-                  sys.exit("::error::Release tag must exist and point to a commit")
-              return result.stdout.strip()
+              if stage == "publish":
+                  # The same inputs were already built and compared before authentication.
+                  # Skip another build-script execution while Cargo recreates the archive.
+                  subprocess.run(["cargo", "publish", "--locked", "--no-verify"], check=True)
 
-          if commit(f"refs/tags/{tag}^{{commit}}") != commit("HEAD"):
-              sys.exit("::error::Checked-out commit does not match the release tag")
-
-      - name: Install Rust
+      - name: Install validated Rust toolchain
         run: |
-          rustup toolchain install stable --profile minimal
-          rustup default stable
+          rustup toolchain install "$RELEASE_TOOLCHAIN" --profile minimal
+          rustup default "$RELEASE_TOOLCHAIN"
+
+      - name: Rebuild validated package
+        run: cargo package --locked
+
+      - name: Compare rebuilt package
+        env:
+          RELEASE_STAGE: compare
+        shell: python
+        run: *verify_release_bundle
 
       - name: Authenticate with crates.io
         id: auth
@@ -201,5 +350,7 @@ jobs:
 
       - name: Publish
         env:
+          RELEASE_STAGE: publish
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
-        run: cargo publish
+        shell: python
+        run: *verify_release_bundle

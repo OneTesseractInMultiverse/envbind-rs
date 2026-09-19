@@ -31,6 +31,11 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/workflow-tests"
           "$RUNNER_TEMP/workflow-tests/bin/python3" -m pip install -r .github/tests/requirements.txt
 
+      - name: Install Rust for release fixtures
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+
       - name: Test release workflow
         run: '"$RUNNER_TEMP/workflow-tests/bin/python3" -B -m unittest discover -s .github/tests -v'
 

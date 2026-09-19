@@ -43,7 +43,7 @@ Clippy, tests, rustdoc examples, and docs.rs-style docs.
 
 The separate `Release workflow tests` CI job checks the scripts and security
 controls in `.github/workflows/publish.yml`. Run it locally with Python 3.11
-or newer and Git:
+or newer, Git, and an installed stable Rust toolchain:
 
 ```sh
 python3 -m venv /tmp/envbind-workflow-tests
@@ -54,9 +54,14 @@ python3 -m venv /tmp/envbind-workflow-tests
 These integration tests create temporary local repositories and execute the
 scripts extracted from the workflow. They cover tag syntax, shell-injection
 payloads, manifest version matching, annotated and lightweight tags, missing
-tags, checkout mismatches, and the validation-only publishing gate. They never
-dispatch workflows, contact a registry, or publish a package. Git identity and
-configuration are isolated from the developer's settings.
+tags, checkout mismatches, and the validation-only publishing gate. Release
+handoff fixtures move a tag after validation, verify the pinned commit, retain
+the lockfile, and rebuild dependency-free crates using real Cargo in offline
+mode. They also reject modified metadata, locks, audits, and archives, and
+verify that the final integrity check blocks publication on drift. The upload
+command is replaced with a local recorder for the final invocation tests.
+Tests never dispatch workflows, contact a registry, or publish a package. Git
+identity/configuration and Cargo caches are isolated from developer settings.
 
 PyYAML 6.0.3 is a pinned, MIT-licensed test dependency used to read the actual
 workflow YAML. It has no runtime dependencies and is excluded from the Rust

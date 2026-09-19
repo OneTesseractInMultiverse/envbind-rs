@@ -8,6 +8,13 @@ The project uses semantic versioning.
 
 ### Fixed
 
+Bound publication to the full commit SHA and dependency resolution that passed
+release validation. Release artifacts now retain the audited lockfile, audit
+results, package, and provenance metadata. Publishing verifies their checksums,
+uses the recorded Rust toolchain, and compares the rebuilt package before
+authentication. Moving a tag between jobs cannot substitute source code.
+Fixes [#11](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/11).
+
 Prevented shell injection through release tag inputs. The release workflow
 validates tags before checkout, passes inputs as environment data, and checks
 fully qualified tag refs and manifest versions before publishing. Release tags

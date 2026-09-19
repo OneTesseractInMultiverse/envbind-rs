@@ -45,5 +45,12 @@ suffix matching `Cargo.toml` exactly. The `v` prefix is required. Manual runs
 also accept `refs/tags/v0.1.1`; the ref must exist as a tag, not just a branch.
 Confirm that the release workflow regression tests pass in CI.
 
+Before approving publication, inspect the validation run's release bundle.
+Confirm that `release.json` identifies the intended full commit SHA, tag,
+package version, Rust toolchain, and audit results. Publishing uses that commit
+and audited lockfile even if the tag later moves. The rebuilt package must
+match the validated archive before authentication. If artifacts expire or
+verification fails, rerun validation instead of bypassing the integrity checks.
+
 Confirm that `SECURITY.md` lists the private report address. Confirm that
 README links use relative paths for repository docs.

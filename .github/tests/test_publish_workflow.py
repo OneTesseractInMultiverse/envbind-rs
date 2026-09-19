@@ -20,7 +20,7 @@ class PublishWorkflowTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
-        self.output = self.root / "output"
+        self.output = self.root / ".git" / "workflow-output"
         self.environment = {
             "PATH": str(Path(sys.executable).parent) + os.pathsep + os.environ["PATH"],
             "GIT_CONFIG_NOSYSTEM": "1",
@@ -57,7 +57,7 @@ class PublishWorkflowTests(unittest.TestCase):
             if step.get("name") == name
         )
 
-    def run_step(self, step, tag, event="workflow_dispatch", release_tag=None):
+    def run_step(self, step, tag, event="workflow_dispatch", release_tag=None, context_values=None):
         # Substitute only the contexts used by these steps, as the runner does
         # before executing a script. This also reproduces unsafe interpolation.
         context = {
@@ -65,7 +65,14 @@ class PublishWorkflowTests(unittest.TestCase):
             "inputs.tag": tag if event == "workflow_dispatch" else "",
             "github.event.release.tag_name": release_tag if release_tag is not None else tag,
             "needs.resolve-tag.outputs.tag": tag,
+            "needs.validate.outputs.commit": getattr(self, "sha", self.git("rev-parse", "HEAD")),
+            "needs.validate.outputs.metadata_sha256": getattr(self, "metadata_digest", ""),
+            "needs.validate.outputs.toolchain": getattr(self, "toolchain", "1.85.0"),
+            "steps.source.outputs.commit": self.git("rev-parse", "HEAD"),
+            "github.run_id": "123",
+            "github.run_attempt": "1",
         }
+        context.update(context_values or {})
 
         def render(value):
             return re.sub(
@@ -80,9 +87,9 @@ class PublishWorkflowTests(unittest.TestCase):
             "GITHUB_OUTPUT": str(self.output),
             "GITHUB_REF_NAME": tag,
         })
-        environment.update({
-            key: render(value) for key, value in step.get("env", {}).items()
-        })
+        job = next(job for job in self.workflow["jobs"].values() if step in job["steps"])
+        for values in [job.get("env", {}), step.get("env", {})]:
+            environment.update({key: render(value) for key, value in values.items()})
         command = (
             [sys.executable, "-c"] if step.get("shell") == "python"
             else ["bash", "--noprofile", "--norc", "-e", "-o", "pipefail", "-c"]
@@ -93,7 +100,7 @@ class PublishWorkflowTests(unittest.TestCase):
             env=environment,
             text=True,
             capture_output=True,
-            timeout=10,
+            timeout=60,
         )
 
     def test_no_context_expressions_are_embedded_in_release_scripts(self):
@@ -188,7 +195,7 @@ class PublishWorkflowTests(unittest.TestCase):
         )
         self.assertNotEqual(result.returncode, 0)
 
-    def test_both_jobs_checkout_only_the_validated_tag_ref(self):
+    def test_checkouts_use_the_selected_tag_then_the_validated_commit(self):
         for job in ["validate", "publish"]:
             with self.subTest(job=job):
                 checkout = next(
@@ -198,7 +205,10 @@ class PublishWorkflowTests(unittest.TestCase):
                 self.assertEqual(
                     checkout["with"],
                     {
-                        "ref": "${{ needs.resolve-tag.outputs.ref }}",
+                        "ref": (
+                            "${{ needs.resolve-tag.outputs.ref }}" if job == "validate"
+                            else "${{ needs.validate.outputs.commit }}"
+                        ),
                         "persist-credentials": False,
                     },
                 )
@@ -244,31 +254,25 @@ class PublishWorkflowTests(unittest.TestCase):
     def test_version_guards_reject_a_branch_without_a_tag(self):
         self.git("tag", "--delete", "v0.1.1")
         self.git("branch", "v0.1.1")
-        for job in ["validate", "publish"]:
-            with self.subTest(job=job):
-                result = self.run_step(
-                    self.step(job, "Check tag matches Cargo.toml version"), "v0.1.1"
-                )
-                self.assertNotEqual(result.returncode, 0)
+        result = self.run_step(
+            self.step("validate", "Check tag matches Cargo.toml version"), "v0.1.1"
+        )
+        self.assertNotEqual(result.returncode, 0)
 
     def test_version_guards_reject_a_checkout_different_from_the_tag(self):
         self.git("commit", "--quiet", "--allow-empty", "-m", "Different commit")
         self.git("branch", "v0.1.1")
-        for job in ["validate", "publish"]:
-            with self.subTest(job=job):
-                result = self.run_step(
-                    self.step(job, "Check tag matches Cargo.toml version"), "v0.1.1"
-                )
-                self.assertNotEqual(result.returncode, 0)
+        result = self.run_step(
+            self.step("validate", "Check tag matches Cargo.toml version"), "v0.1.1"
+        )
+        self.assertNotEqual(result.returncode, 0)
 
     def test_version_guards_reject_a_tag_pointing_to_a_tree(self):
         self.git("tag", "--force", "v0.1.1", self.git("rev-parse", "HEAD^{tree}"))
-        for job in ["validate", "publish"]:
-            with self.subTest(job=job):
-                result = self.run_step(
-                    self.step(job, "Check tag matches Cargo.toml version"), "v0.1.1"
-                )
-                self.assertNotEqual(result.returncode, 0)
+        result = self.run_step(
+            self.step("validate", "Check tag matches Cargo.toml version"), "v0.1.1"
+        )
+        self.assertNotEqual(result.returncode, 0)
 
     def test_authentication_follows_tag_verification(self):
         names = [

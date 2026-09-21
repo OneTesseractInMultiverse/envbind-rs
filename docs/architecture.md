@@ -62,8 +62,11 @@ Explicit field types are favored over a broad generic field. This keeps each
 type small. It gives each type one reason to change.
 
 All current field specs expose defaults, empty-string handling, sensitivity
-control, and validation. String, JSON, base64, and list specs add size or
-shape controls tied to their target type.
+control, and validation. Defaults skip validators unless the field enables
+`validate_default()`, which sends the typed fallback through the existing
+validator path and sensitivity policy. It does not parse or serialize defaults.
+String, JSON, base64, and list specs add size or shape controls for environment
+input; typed defaults need attached validators for equivalent constraints.
 
 ## Error Contracts
 

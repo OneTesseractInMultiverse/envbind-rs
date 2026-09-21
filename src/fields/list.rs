@@ -20,6 +20,7 @@ pub struct ListVar<T> {
     parser: Box<ElementParser<T>>,
     default: Option<Vec<T>>,
     allow_empty: bool,
+    validate_default: bool,
     sensitive: bool,
     max_items: usize,
     validators: Vec<Box<ListValidator<T>>>,
@@ -145,6 +146,7 @@ where
             parser: Box::new(parser),
             default: None,
             allow_empty: false,
+            validate_default: false,
             sensitive: true,
             max_items: DEFAULT_MAX_LIST_ITEMS,
             validators: Vec::new(),
@@ -167,7 +169,10 @@ where
         self
     }
 
-    /// Provide a fallback value when the variable is missing or empty.
+    /// Provide a fallback value for missing or empty input.
+    ///
+    /// Empty input selects this fallback unless [`Self::allow_empty`] is enabled.
+    /// Skips validators unless [`Self::validate_default`] is enabled.
     #[must_use]
     pub fn default(mut self, value: Vec<T>) -> Self {
         self.default = Some(value);
@@ -192,6 +197,16 @@ where
     #[must_use]
     pub fn max_items(mut self, value: usize) -> Self {
         self.max_items = value;
+        self
+    }
+
+    /// Run attached typed validators on the fallback value during binding.
+    ///
+    /// Disabled by default. Only affects a selected fallback; input parsing and
+    /// limits are unchanged. See the [fallback validation policy](crate::fields).
+    #[must_use]
+    pub fn validate_default(mut self) -> Self {
+        self.validate_default = true;
         self
     }
 
@@ -222,7 +237,7 @@ where
                 true,
             ),
         };
-        if used_default {
+        if used_default && !self.validate_default {
             return Ok(value);
         }
         for validator in &self.validators {

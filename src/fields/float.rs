@@ -13,6 +13,7 @@ pub struct FloatVar {
     name: VariableName,
     default: Option<f64>,
     allow_empty: bool,
+    validate_default: bool,
     sensitive: bool,
     validators: Vec<Box<F64Validator>>,
 }
@@ -25,12 +26,16 @@ impl FloatVar {
             name: name.into(),
             default: None,
             allow_empty: false,
+            validate_default: false,
             sensitive: true,
             validators: Vec::new(),
         }
     }
 
-    /// Provide a fallback value when the variable is missing or empty.
+    /// Provide a fallback value for missing or empty input.
+    ///
+    /// Empty input selects this fallback unless [`Self::allow_empty`] is enabled.
+    /// Skips validators unless [`Self::validate_default`] is enabled.
     #[must_use]
     pub fn default(mut self, value: f64) -> Self {
         self.default = Some(value);
@@ -48,6 +53,16 @@ impl FloatVar {
     #[must_use]
     pub fn sensitive(mut self, value: bool) -> Self {
         self.sensitive = value;
+        self
+    }
+
+    /// Run attached typed validators on the fallback value during binding.
+    ///
+    /// Disabled by default. Only affects a selected fallback; input parsing and
+    /// limits are unchanged. See the [fallback validation policy](crate::fields).
+    #[must_use]
+    pub fn validate_default(mut self) -> Self {
+        self.validate_default = true;
         self
     }
 
@@ -74,7 +89,7 @@ impl Binding<f64> for FloatVar {
                 true,
             ),
         };
-        if used_default {
+        if used_default && !self.validate_default {
             return Ok(value);
         }
         for validator in &self.validators {

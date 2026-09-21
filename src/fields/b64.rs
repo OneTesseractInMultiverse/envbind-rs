@@ -19,6 +19,7 @@ pub struct B64DecodedStringVar {
     name: VariableName,
     default: Option<String>,
     allow_empty: bool,
+    validate_default: bool,
     sensitive: bool,
     max_decoded_bytes: usize,
     validators: Vec<Box<StringValidator>>,
@@ -32,13 +33,17 @@ impl B64DecodedStringVar {
             name: name.into(),
             default: None,
             allow_empty: false,
+            validate_default: false,
             sensitive: true,
             max_decoded_bytes: DEFAULT_MAX_B64_DECODED_BYTES,
             validators: Vec::new(),
         }
     }
 
-    /// Provide a fallback decoded value when the variable is missing or empty.
+    /// Provide a fallback decoded value for missing or empty input.
+    ///
+    /// Empty input selects this fallback unless [`Self::allow_empty`] is enabled.
+    /// Skips validators unless [`Self::validate_default`] is enabled.
     #[must_use]
     pub fn default(mut self, value: impl Into<String>) -> Self {
         self.default = Some(value.into());
@@ -63,6 +68,16 @@ impl B64DecodedStringVar {
     #[must_use]
     pub fn max_decoded_bytes(mut self, value: usize) -> Self {
         self.max_decoded_bytes = value;
+        self
+    }
+
+    /// Run attached typed validators on the fallback value during binding.
+    ///
+    /// Disabled by default. Only affects a selected fallback; input parsing and
+    /// limits are unchanged. See the [fallback validation policy](crate::fields).
+    #[must_use]
+    pub fn validate_default(mut self) -> Self {
+        self.validate_default = true;
         self
     }
 
@@ -96,7 +111,7 @@ impl Binding<String> for B64DecodedStringVar {
                 true,
             ),
         };
-        if used_default {
+        if used_default && !self.validate_default {
             return Ok(value);
         }
         for validator in &self.validators {

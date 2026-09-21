@@ -13,6 +13,7 @@ pub struct StringVar {
     name: VariableName,
     default: Option<String>,
     allow_empty: bool,
+    validate_default: bool,
     sensitive: bool,
     max_bytes: usize,
     validators: Vec<Box<StringValidator>>,
@@ -26,13 +27,17 @@ impl StringVar {
             name: name.into(),
             default: None,
             allow_empty: false,
+            validate_default: false,
             sensitive: true,
             max_bytes: DEFAULT_MAX_RAW_BYTES,
             validators: Vec::new(),
         }
     }
 
-    /// Provide a fallback value when the variable is missing.
+    /// Provide a fallback value for missing or empty input.
+    ///
+    /// Empty input selects this fallback unless [`Self::allow_empty`] is enabled.
+    /// Skips validators unless [`Self::validate_default`] is enabled.
     #[must_use]
     pub fn default(mut self, value: impl Into<String>) -> Self {
         self.default = Some(value.into());
@@ -57,6 +62,16 @@ impl StringVar {
     #[must_use]
     pub fn max_bytes(mut self, value: usize) -> Self {
         self.max_bytes = value;
+        self
+    }
+
+    /// Run attached typed validators on the fallback value during binding.
+    ///
+    /// Disabled by default. Only affects a selected fallback; input parsing and
+    /// limits are unchanged. See the [fallback validation policy](crate::fields).
+    #[must_use]
+    pub fn validate_default(mut self) -> Self {
+        self.validate_default = true;
         self
     }
 
@@ -85,13 +100,12 @@ impl Binding<String> for StringVar {
             ResolvedString::Parsed(value) => (value, false),
             ResolvedString::Defaulted(value) => (value, true),
         };
-        if used_default {
+        if used_default && !self.validate_default {
             return Ok(value);
         }
         validate_string(
             name,
             &value,
-            self.allow_empty,
             self.sensitive,
             self.validators.iter().map(Box::as_ref),
         )?;
@@ -104,6 +118,7 @@ pub struct OptionalStringVar {
     name: VariableName,
     default: Option<String>,
     allow_empty: bool,
+    validate_default: bool,
     sensitive: bool,
     max_bytes: usize,
     validators: Vec<Box<StringValidator>>,
@@ -117,13 +132,17 @@ impl OptionalStringVar {
             name: name.into(),
             default: None,
             allow_empty: false,
+            validate_default: false,
             sensitive: true,
             max_bytes: DEFAULT_MAX_RAW_BYTES,
             validators: Vec::new(),
         }
     }
 
-    /// Provide a fallback value when the variable is missing or empty.
+    /// Provide a fallback value for missing or empty input.
+    ///
+    /// Empty input selects this fallback unless [`Self::allow_empty`] is enabled.
+    /// Skips validators unless [`Self::validate_default`] is enabled.
     #[must_use]
     pub fn default(mut self, value: impl Into<String>) -> Self {
         self.default = Some(value.into());
@@ -151,6 +170,16 @@ impl OptionalStringVar {
         self
     }
 
+    /// Run attached typed validators on the fallback value during binding.
+    ///
+    /// Disabled by default. Only affects a selected fallback; input parsing and
+    /// limits are unchanged. See the [fallback validation policy](crate::fields).
+    #[must_use]
+    pub fn validate_default(mut self) -> Self {
+        self.validate_default = true;
+        self
+    }
+
     /// Attach a validation rule.
     #[must_use]
     pub fn validate<F>(mut self, validator: F) -> Self
@@ -172,20 +201,21 @@ impl Binding<Option<String>> for OptionalStringVar {
             self.allow_empty,
             self.max_bytes,
         )?;
-        match value {
-            OptionalResolvedString::Parsed(raw) => {
-                validate_string(
-                    name,
-                    &raw,
-                    self.allow_empty,
-                    self.sensitive,
-                    self.validators.iter().map(Box::as_ref),
-                )?;
-                Ok(Some(raw))
-            }
-            OptionalResolvedString::Defaulted(raw) => Ok(Some(raw)),
-            OptionalResolvedString::Missing => Ok(None),
+        let (raw, used_default) = match value {
+            OptionalResolvedString::Parsed(raw) => (raw, false),
+            OptionalResolvedString::Defaulted(raw) => (raw, true),
+            OptionalResolvedString::Missing => return Ok(None),
+        };
+        if used_default && !self.validate_default {
+            return Ok(Some(raw));
         }
+        validate_string(
+            name,
+            &raw,
+            self.sensitive,
+            self.validators.iter().map(Box::as_ref),
+        )?;
+        Ok(Some(raw))
     }
 }
 
@@ -253,17 +283,12 @@ fn optional_string<E: Environment>(
 fn validate_string<'a, I>(
     name: &str,
     value: &str,
-    allow_empty: bool,
     sensitive: bool,
     validators: I,
 ) -> Result<(), BindError>
 where
     I: IntoIterator<Item = &'a StringValidator>,
 {
-    if !allow_empty && value.is_empty() {
-        return Err(BindError::empty(name.to_owned()));
-    }
-
     for validator in validators {
         validator(value).map_err(|error| {
             BindError::validation_with_sensitivity(name.to_owned(), error, sensitive)

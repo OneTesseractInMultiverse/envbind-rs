@@ -13,6 +13,7 @@ pub struct U16Var {
     name: VariableName,
     default: Option<u16>,
     allow_empty: bool,
+    validate_default: bool,
     sensitive: bool,
     validators: Vec<Box<U16Validator>>,
 }
@@ -25,12 +26,16 @@ impl U16Var {
             name: name.into(),
             default: None,
             allow_empty: false,
+            validate_default: false,
             sensitive: true,
             validators: Vec::new(),
         }
     }
 
-    /// Provide a fallback value when the variable is missing.
+    /// Provide a fallback value for missing or empty input.
+    ///
+    /// Empty input selects this fallback unless [`Self::allow_empty`] is enabled.
+    /// Skips validators unless [`Self::validate_default`] is enabled.
     #[must_use]
     pub fn default(mut self, value: u16) -> Self {
         self.default = Some(value);
@@ -48,6 +53,16 @@ impl U16Var {
     #[must_use]
     pub fn sensitive(mut self, value: bool) -> Self {
         self.sensitive = value;
+        self
+    }
+
+    /// Run attached typed validators on the fallback value during binding.
+    ///
+    /// Disabled by default. Only affects a selected fallback; input parsing and
+    /// limits are unchanged. See the [fallback validation policy](crate::fields).
+    #[must_use]
+    pub fn validate_default(mut self) -> Self {
+        self.validate_default = true;
         self
     }
 
@@ -74,7 +89,7 @@ impl Binding<u16> for U16Var {
                 true,
             ),
         };
-        if used_default {
+        if used_default && !self.validate_default {
             return Ok(value);
         }
         validate_u16(

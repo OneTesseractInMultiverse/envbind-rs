@@ -33,6 +33,7 @@ impl ParameterSource for ServiceSettings {
             port: binder.bind(
                 &IntVar::new("SERVICE_PORT")
                     .default(8080)
+                    .validate_default()
                     .sensitive(false)
                     .validate(validators::in_range(1, 65_535)),
             )?,
@@ -101,12 +102,12 @@ assert_eq!(settings.host, "localhost");
 
 Every field spec follows the same shape. It has a variable name, a default,
 empty-string handling, sensitivity control, and validation. The shared methods
-are `.default(...)`, `.allow_empty()`, `.sensitive(false)`, and
-`.validate(...)`.
+are `.default(...)`, `.validate_default()`, `.allow_empty()`,
+`.sensitive(false)`, and `.validate(...)`.
 
 By default, missing values fail without a default. Empty strings act as missing.
-Values are sensitive, so custom validation details are hidden. Defaults return
-before validators run.
+Values are sensitive, so custom validation details are hidden. Defaults skip
+validators unless `.validate_default()` is enabled.
 
 | Field | Target type | Main options |
 | --- | --- | --- |
@@ -122,14 +123,68 @@ before validators run.
 | `B64DecodedStringVar` | `String` | `.max_decoded_bytes(...)` |
 
 Explicit empty strings act as missing by default. Whitespace-only text remains
-parser input. Defaults return before validators run.
+parser input.
 
 Use `allow_empty()` for empty text that must parse as a real value. Use
 `.sensitive(false)` for values that are safe to mention in validation details.
 
 `BindingExt::optional()` wraps any binding spec and returns `None` for missing
-or empty input. This is useful for optional ports, optional JSON values, and
-optional decoded strings.
+or empty errors. The wrapped spec resolves defaults first. Successful defaults
+return `Some`, and parsing or validation failures remain errors. This is useful
+for optional ports, optional JSON values, and optional decoded strings.
+
+## Validating Defaults
+
+Defaults retain the original behavior: `.default(...)` alone skips validators.
+Add `.validate_default()` when a rule must hold regardless of whether the value
+comes from the environment or a fallback. This option is available on every
+field type, including `OptionalStringVar`.
+
+```rust
+use envbind::{Binder, MapEnvironment, U16Var, validators};
+
+let port = U16Var::new("PORT")
+    .default(0)
+    .validate_default()
+    .validate(validators::u16_in_range(1, 65_535));
+let results = [MapEnvironment::new(), MapEnvironment::from_pairs([("PORT", "0")])]
+    .map(|environment| Binder::new(environment).bind(&port).map_err(|e| e.error_code()));
+assert_eq!(results, [Err("validation_failed"), Err("validation_failed")]);
+```
+
+Validation happens during each binding, not while building the spec. Each
+attached validator runs once in registration order, stopping at the first
+failure. Calling `.validate_default()` before or after `.default(...)` or
+`.validate(...)` has the same effect; repeated calls do not duplicate validation.
+Errors use `validation_failed` and obey `.sensitive(...)` exactly as they do for
+environment values. Custom details remain redacted unless sensitivity is disabled.
+
+| Input | Behavior with `.validate_default()` |
+| --- | --- |
+| Missing, with a default | Validate the typed fallback. |
+| Explicitly empty, with a default | Validate the typed fallback unless `.allow_empty()` is set. |
+| Explicitly empty with `.allow_empty()` | Parse and validate the empty input; do not select the fallback. |
+| Present but malformed or too large | Return the parsing or limit error; do not select the fallback. |
+| Missing, without a default | Keep the existing missing error or optional `None`; no validator runs. |
+| Explicitly empty, without a default or `.allow_empty()` | Keep the existing empty error or optional `None`; no validator runs. |
+
+`allow_empty()` controls how input is resolved. It does not change which typed
+defaults are valid. An empty string fallback still reaches attached validators;
+use a length validator to reject it. Without validators, it remains a valid
+fallback. Missing input still uses the default even with `allow_empty()`.
+
+`OptionalStringVar` validates a fallback's string value before returning
+`Some(value)`, including empty strings, and never invokes validators for `None`.
+Apply `.validate_default()` to a field before wrapping it with
+`BindingExt::optional()`. That wrapper preserves validation failures, including
+failures for an empty fallback.
+
+Typed defaults are never serialized, reparsed, decoded, split, or looked up by
+enum label. JSON validators receive the provided `serde_json::Value` (including
+`Null`), list validators receive the typed slice without invoking item parsers,
+and enum validators receive the supplied target even if it has no input label.
+Base64 defaults are already decoded text. Use attached validators for invariants
+that must also hold on these typed values.
 
 ## Size Limits
 
@@ -142,6 +197,12 @@ override.
 limit. `B64DecodedStringVar` stops at 1 MiB of decoded text, and
 `.max_decoded_bytes(...)` changes that limit. `ListVar` stops at 1 MiB of raw
 text and 1024 parsed items. `.max_items(...)` changes the item limit.
+
+These built-in limits protect parsing environment input. None of them apply to
+typed defaults, even with `.validate_default()`: this includes raw byte limits,
+base64 decoded byte limits, and list item limits. To constrain fallback values,
+attach a typed validator for the relevant byte length, character length, or
+item count and enable `.validate_default()`.
 
 ## String and Boolean Examples
 

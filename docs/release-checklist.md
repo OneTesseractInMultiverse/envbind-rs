@@ -26,6 +26,9 @@ Confirm that CI passes on stable Rust and on the declared minimum Rust version.
 Confirm that the RustSec advisory audit passes. Commit or stash local changes
 before release commands that reject dirty working trees.
 
+Review the [dependency maintenance guidance](dependencies.md), including the
+manually pinned cargo-audit version in both workflows and any MSRV constraints.
+
 Confirm that the package name and Rust library name are both `envbind`.
 
 ## Versioning

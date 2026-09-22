@@ -27,6 +27,9 @@ network access, local services, or process-specific environment variables.
 Explain each new dependency. Include its purpose, maintenance cost, license,
 and role in parser or validator behavior.
 
+See [Dependency Maintenance](docs/dependencies.md) for version review, MSRV
+constraints, action pins, and tooling updates.
+
 ## Pull Request Checklist
 
 Open an issue before a large API change. Use the issue templates for bugs and

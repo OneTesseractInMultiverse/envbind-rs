@@ -21,6 +21,12 @@ and remaining constraints. Fixes
 
 ### Added
 
+Configured the `crates-io` environment with required maintainer approval,
+selected deployment refs, and no administrator bypass. Protected version tags
+against updates and deletion. Added a read-only release preflight, regression
+tests, and a token-free approval-gate fixture with a recovery runbook. See
+[#14](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/14).
+
 Added `.validate_default()` to every field spec to run typed validators on
 fallback values during binding. Existing defaults still skip validation unless
 this option is enabled. Fallback failures use the normal validation error and

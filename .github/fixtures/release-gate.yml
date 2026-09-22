@@ -1,0 +1,32 @@
+# Install as publish.yml only on an isolated, temporary fixture commit.
+# See docs/release-controls.md before dispatching this workflow.
+name: Release gate validation
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions: {}
+
+jobs:
+  approval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: crates-io
+    permissions: {}
+    steps:
+      - name: Confirm approval without publishing credentials
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          WORKFLOW_REF: ${{ github.ref }}
+        run: |
+          python3 - <<'PY'
+          import os
+          if any(os.environ.get(key) for key in [
+              "ACTIONS_ID_TOKEN_REQUEST_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_URL",
+              "CARGO_REGISTRY_TOKEN", "CARGO_REGISTRIES_CRATES_IO_TOKEN",
+          ]):
+              raise SystemExit("Unexpected credential access")
+          print("Release gate approved: " + os.environ["EVENT_NAME"] + " " + os.environ["WORKFLOW_REF"])
+          PY

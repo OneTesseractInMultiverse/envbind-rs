@@ -1,0 +1,30 @@
+{
+  "repository": "OneTesseractInMultiverse/envbind-rs",
+  "environment": {
+    "name": "crates-io",
+    "reviewer": "OneTesseractInMultiverse",
+    "reviewer_id": 22035370,
+    "prevent_self_review": false,
+    "can_admins_bypass": false
+  },
+  "deployment_refs": [
+    {"type": "branch", "name": "main"},
+    {"type": "tag", "name": "v*"}
+  ],
+  "tag_ruleset": {
+    "name": "Protect release tags",
+    "include": ["refs/tags/v*"],
+    "exclude": [],
+    "bypass_actors": []
+  },
+  "main_ruleset": {
+    "name": "Protect main",
+    "required_checks": ["Rust 1.85.0", "Rust stable", "Security audit"]
+  },
+  "trusted_publisher": {
+    "owner": "OneTesseractInMultiverse",
+    "repository": "envbind-rs",
+    "workflow": "publish.yml",
+    "environment": "crates-io"
+  }
+}

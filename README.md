@@ -89,6 +89,7 @@ impl ParameterSource for Settings {
             port: binder.bind(
                 &IntVar::new("SERVICE_PORT")
                     .default(8080)
+                    .validate_default()
                     .sensitive(false)
                     .validate(validators::in_range(1, 65_535)),
             )?,
@@ -141,14 +142,18 @@ Field specs cover the common startup types: `StringVar`, `OptionalStringVar`,
 `BoolVar`, `IntVar`, `FloatVar`, `ListVar`, `JsonVar`, `EnumVar`,
 `B64DecodedStringVar`, and `U16Var`.
 
-Every field spec supports `.default(...)`, `.allow_empty()`,
-`.sensitive(false)`, and `.validate(...)`. `BindingExt::optional()` wraps any binding spec and returns `None` for
-missing or empty input.
+Every field spec supports `.default(...)`, `.validate_default()`, `.allow_empty()`,
+`.sensitive(false)`, and `.validate(...)`. `BindingExt::optional()` wraps any binding spec and converts
+missing or empty errors to `None`. Successful defaults return `Some`; validation errors remain errors.
 
 ## Field Behavior
 
 `StringVar` binds a required string. Missing values fail without a default. Empty strings act as missing by default.
-Whitespace-only strings remain input. Defaults return before validation.
+Whitespace-only strings remain input. Defaults skip validation unless
+`.validate_default()` is enabled. This runs the same typed validators on a selected
+fallback, with the usual error redaction. Parsing limits still apply only to
+environment input. See [Validating Defaults](docs/api-guide.md#validating-defaults)
+for optional fields, empty values, and container defaults.
 
 ```rust
 # use envbind::{Binder, MapEnvironment, StringVar};

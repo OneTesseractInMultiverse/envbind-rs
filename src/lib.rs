@@ -27,6 +27,8 @@
 //! Values are treated as sensitive by default. Raw inputs have defensive size
 //! limits, and larger JSON, base64, string, or list values must opt in through
 //! field-specific limit setters.
+//! Typed defaults skip validation unless `.validate_default()` is enabled on
+//! the field. See the [fallback validation policy](fields) for details.
 //!
 //! # Feature Flags
 //!
@@ -57,6 +59,7 @@
 //!             port: binder.bind(
 //!                 &U16Var::new("SERVICE_PORT")
 //!                     .default(8080)
+//!                     .validate_default()
 //!                     .validate(validators::u16_in_range(1, 65_535)),
 //!             )?,
 //!             service_name: binder.bind(&StringVar::new("SERVICE_NAME").default("api"))?,

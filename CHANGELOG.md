@@ -6,6 +6,15 @@ The project uses semantic versioning.
 
 ## Unreleased
 
+### Added
+
+Added `.validate_default()` to every field spec to run typed validators on
+fallback values during binding. Existing defaults still skip validation unless
+this option is enabled. Fallback failures use the normal validation error and
+sensitivity policy. Parsing and size limits remain specific to environment
+input; typed defaults are never reparsed. Fixes
+[#12](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/12).
+
 ### Fixed
 
 Bound publication to the full commit SHA and dependency resolution that passed

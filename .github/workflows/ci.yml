@@ -22,7 +22,7 @@ jobs:
     name: Release workflow tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -42,6 +42,9 @@ jobs:
   rust:
     name: Rust ${{ matrix.toolchain }}
     runs-on: ubuntu-latest
+    env:
+      # Exercise the newest graph on stable and the supported graph on the MSRV.
+      CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: ${{ matrix.toolchain == 'stable' && 'allow' || 'fallback' }}
     strategy:
       fail-fast: false
       matrix:
@@ -49,7 +52,7 @@ jobs:
           - "1.85.0"
           - stable
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -97,7 +100,7 @@ jobs:
     name: Security audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
@@ -107,10 +110,12 @@ jobs:
           rustup default stable
 
       - name: Install cargo-audit
-        run: cargo install cargo-audit --locked --version 0.22.1
+        run: cargo install cargo-audit --locked --version 0.22.2
 
       - name: Audit dependencies
         run: |
-          cargo generate-lockfile
-          cargo audit
+          for resolution in fallback allow; do
+            CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS="$resolution" cargo generate-lockfile
+            cargo audit
+          done
           rm -f Cargo.lock

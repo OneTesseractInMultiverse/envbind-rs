@@ -98,6 +98,46 @@ assert_eq!(settings.host, "localhost");
 # Ok::<(), BindError>(())
 ```
 
+### Process Environment Names
+
+`ProcessEnvironment` requires a nonempty name containing neither `=` nor NUL
+(`\0`). It checks the name before reading the process environment. This applies
+on every platform, including names such as Windows' reserved `=C:` entries.
+`allow_empty()` permits empty **values** and does not relax name validation.
+
+Invalid names return `EnvironmentError::InvalidName`. Binding wraps this in
+`BindError::Environment`, with the existing stable code `environment_error`.
+The source displays `invalid environment variable name`; both debug formats
+display `InvalidName`. The source stores no name, diagnostic payload, or raw
+value. The enclosing binding error still exposes the caller-supplied name as
+normal error context, so names must not contain secrets.
+
+```rust
+# use envbind::{Binder, BindingExt, ProcessEnvironment, StringVar};
+let result = Binder::new(ProcessEnvironment)
+    .bind(&StringVar::new("INVALID=NAME").default("fallback").optional())
+    .map_err(|error| error.error_code());
+
+assert_eq!(result, Err("environment_error"));
+```
+
+Defaults, `OptionalStringVar`, and `BindingExt::optional()` propagate this
+failure. A valid name that is absent still follows the existing missing,
+default, and optional behavior. All other names pass unchanged to the standard
+library: Unicode, spaces, punctuation, and names starting with a digit are not
+restricted to shell identifier syntax. Names are not trimmed or case-folded;
+case matching remains platform-specific (case-sensitive on Unix and
+case-insensitive on Windows).
+
+This is a behavior change for malformed process keys. Previously, the
+[standard library's absent-or-invalid result](https://doc.rust-lang.org/std/env/fn.var.html)
+could select a fallback or become `None`. Correct malformed field names instead
+of relying on that fallback. `MapEnvironment` continues to accept arbitrary
+string keys, including empty strings, `=`, and NUL; custom `Environment`
+implementations define their own namespace. The new variant extends the
+already non-exhaustive adapter error enum without changing existing binding
+error codes.
+
 ## Field Types and Options
 
 Every field spec follows the same shape. It has a variable name, a default,

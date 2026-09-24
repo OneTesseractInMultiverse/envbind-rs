@@ -35,6 +35,10 @@ path = "src/lib.rs"
 name = "error_exit"
 harness = false
 
+[[test]]
+name = "process_environment"
+harness = false
+
 [package.metadata.docs.rs]
 all-features = true
 targets = []

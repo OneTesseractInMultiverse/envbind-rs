@@ -7,17 +7,30 @@ use std::fmt::{self, Debug, Formatter};
 use crate::error::EnvironmentError;
 
 /// Return raw environment values by name.
+///
+/// Each adapter defines its own name syntax. Process-specific restrictions are
+/// enforced by [`ProcessEnvironment`], not by binders or field specs.
 pub trait Environment {
     /// Return the raw string value for a name when present.
     fn get(&self, name: &str) -> Result<Option<String>, EnvironmentError>;
 }
 
 /// Read values from the process environment.
+///
+/// Names must be nonempty and contain neither `=` nor NUL (`\0`). Invalid names
+/// return [`EnvironmentError::InvalidName`] before lookup, even when the field
+/// has a default or is optional. Other names, including Unicode and whitespace,
+/// are passed unchanged to [`std::env::var`]; case matching follows the platform.
+/// A valid absent name returns `Ok(None)`.
 #[derive(Debug, Default, Clone, Copy)]
 pub struct ProcessEnvironment;
 
 impl Environment for ProcessEnvironment {
     fn get(&self, name: &str) -> Result<Option<String>, EnvironmentError> {
+        if name.is_empty() || name.contains('=') || name.contains('\0') {
+            return Err(EnvironmentError::invalid_name());
+        }
+
         match env::var(name) {
             Ok(value) => Ok(Some(value)),
             Err(env::VarError::NotPresent) => Ok(None),
@@ -27,6 +40,9 @@ impl Environment for ProcessEnvironment {
 }
 
 /// Read values from an in-memory map.
+///
+/// Keys are arbitrary strings, including empty names and names containing `=`
+/// or NUL. The process adapter's name restrictions do not apply to this map.
 #[derive(Default, Clone, PartialEq, Eq)]
 pub struct MapEnvironment {
     values: BTreeMap<String, String>,

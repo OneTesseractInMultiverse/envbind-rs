@@ -14,6 +14,11 @@ pub type VariableName = Cow<'static, str>;
 #[non_exhaustive]
 #[derive(Clone, PartialEq, Eq)]
 pub enum EnvironmentError {
+    /// The variable name is invalid for the environment adapter.
+    ///
+    /// [`crate::ProcessEnvironment`] rejects empty names and names containing
+    /// `=` or NUL. This variant stores no name or raw environment value.
+    InvalidName,
     /// The variable was present with invalid Unicode.
     NotUnicode,
     /// Adapter-specific read failure.
@@ -29,6 +34,12 @@ pub enum EnvironmentError {
 }
 
 impl EnvironmentError {
+    /// Build an invalid environment variable name error.
+    #[must_use]
+    pub fn invalid_name() -> Self {
+        Self::InvalidName
+    }
+
     /// Build a non-Unicode environment value error.
     #[must_use]
     pub fn not_unicode() -> Self {
@@ -47,6 +58,7 @@ impl EnvironmentError {
 impl Debug for EnvironmentError {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidName => formatter.write_str("InvalidName"),
             Self::NotUnicode => formatter.write_str("NotUnicode"),
             Self::Read { .. } => formatter
                 .debug_struct("Read")
@@ -59,6 +71,7 @@ impl Debug for EnvironmentError {
 impl Display for EnvironmentError {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         match self {
+            Self::InvalidName => formatter.write_str("invalid environment variable name"),
             Self::NotUnicode => formatter.write_str("value is not valid Unicode"),
             Self::Read { .. } => formatter.write_str("adapter read failed"),
         }

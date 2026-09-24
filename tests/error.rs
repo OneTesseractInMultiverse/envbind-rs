@@ -5,6 +5,30 @@ use std::error::Error;
 use envbind::{BindError, EnvironmentError, ValidationError};
 
 #[test]
+fn invalid_name_error_has_safe_display() {
+    assert_eq!(
+        EnvironmentError::invalid_name().to_string(),
+        "invalid environment variable name",
+    );
+}
+
+#[test]
+fn invalid_name_error_has_safe_debug() {
+    assert_eq!(
+        format!("{:?}", EnvironmentError::invalid_name()),
+        "InvalidName"
+    );
+}
+
+#[test]
+fn invalid_name_error_has_safe_alternate_debug() {
+    assert_eq!(
+        format!("{:#?}", EnvironmentError::invalid_name()),
+        "InvalidName"
+    );
+}
+
+#[test]
 fn validation_error_keeps_message() {
     let error = ValidationError::new("bad value");
 

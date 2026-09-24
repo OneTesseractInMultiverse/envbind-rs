@@ -36,6 +36,14 @@ input; typed defaults are never reparsed. Fixes
 
 ### Fixed
 
+Reject empty process-environment names and names containing `=` or NUL before
+lookup. These now return `EnvironmentError::InvalidName` through the existing
+`environment_error` binding code, including defaulted and optional fields.
+Callers that relied on malformed names selecting defaults must correct their
+field names. Valid missing names, Unicode names, and map/custom adapter
+namespaces retain their behavior. Fixes
+[#15](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/15).
+
 Bound publication to the full commit SHA and dependency resolution that passed
 release validation. Release artifacts now retain the audited lockfile, audit
 results, package, and provenance metadata. Publishing verifies their checksums,

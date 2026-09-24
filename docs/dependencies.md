@@ -60,6 +60,11 @@ MSRV-aware default resolution and audits that exact lockfile before packaging.
 Both reviewed graphs contain 46 registry packages and passed cargo-audit 0.22.2
 without vulnerability findings or maintenance warnings.
 
+The stable dependency graph is now exercised by native Linux, macOS, and
+Windows jobs. The required `Rust stable` aggregate check succeeds only after
+the entire Rust matrix succeeds; `Rust 1.85.0` remains the dedicated Linux MSRV
+check. See [platform CI](testing-guide.md#platform-ci-and-required-checks).
+
 Remaining constraints are explicit:
 
 - `yoke-derive = "=0.8.2"` is retained. Version 0.8.3 calls `str::from_utf8`,

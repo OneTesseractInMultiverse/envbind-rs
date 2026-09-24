@@ -40,17 +40,30 @@ jobs:
         run: '"$RUNNER_TEMP/workflow-tests/bin/python3" -B -m unittest discover -s .github/tests -v'
 
   rust:
-    name: Rust ${{ matrix.toolchain }}
-    runs-on: ubuntu-latest
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
     env:
       # Exercise the newest graph on stable and the supported graph on the MSRV.
       CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: ${{ matrix.toolchain == 'stable' && 'allow' || 'fallback' }}
     strategy:
       fail-fast: false
       matrix:
-        toolchain:
-          - "1.85.0"
-          - stable
+        include:
+          - name: Rust 1.85.0
+            toolchain: "1.85.0"
+            os: ubuntu-latest
+          - name: Rust stable (Linux)
+            toolchain: stable
+            os: ubuntu-latest
+          - name: Rust stable (macOS)
+            toolchain: stable
+            os: macos-latest
+          - name: Rust stable (Windows)
+            toolchain: stable
+            os: windows-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -63,7 +76,7 @@ jobs:
 
       - name: Show tool versions
         run: |
-          rustc --version
+          rustc --version --verbose
           cargo --version
 
       - name: Check formatting
@@ -95,6 +108,22 @@ jobs:
       - name: Package
         if: matrix.toolchain == 'stable'
         run: cargo package
+
+  rust-stable:
+    # Preserve the required check name while gating every platform and the MSRV.
+    name: Rust stable
+    needs: rust
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the complete Rust matrix
+        env:
+          MATRIX_RESULT: ${{ needs.rust.result }}
+        run: |
+          if [ "$MATRIX_RESULT" != success ]; then
+            echo "Rust matrix did not succeed: $MATRIX_RESULT"
+            exit 1
+          fi
 
   security:
     name: Security audit

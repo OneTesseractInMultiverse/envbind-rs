@@ -21,6 +21,13 @@ and remaining constraints. Fixes
 
 ### Added
 
+Added subprocess integration coverage for production settings loading,
+present/absent/empty and Unicode values, invalid-Unicode adapter failures, and
+safe error output. Stable CI now runs on Linux, macOS, and Windows, with an
+aggregate `Rust stable` gate preserving the existing required check name and
+the Linux Rust 1.85 check. Documented the supported target baseline. Fixes
+[#16](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/16).
+
 Configured the `crates-io` environment with required maintainer approval,
 selected deployment refs, and no administrator bypass. Protected version tags
 against updates and deletion. Added a read-only release preflight, regression

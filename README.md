@@ -282,6 +282,10 @@ Reference files:
 
 ## Local Commands
 
+Rust 1.85 is the declared minimum. Stable Rust CI covers Linux, macOS, and
+Windows, including real process-environment loading and package verification.
+See the [supported target baseline](SUPPORT.md#supported-platforms).
+
 ```sh
 make test
 make test-doc

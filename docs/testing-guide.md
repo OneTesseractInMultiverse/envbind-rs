@@ -39,6 +39,23 @@ environment variables.
 `make verify` is the main local gate. It runs formatting checks, Cargo check,
 Clippy, tests, rustdoc examples, and docs.rs-style docs.
 
+## Process Name Tests
+
+`tests/environment.rs` checks malformed process names through required,
+defaulted, and optional bindings and verifies that map and custom adapters keep
+their own key namespace. These invalid-name reads do not modify process state.
+
+The `process_environment` test target uses a child process with an explicitly
+cleared environment and synthetic fixture variables. It checks valid missing
+names, Unicode and non-shell names, whitespace preservation, and native case
+matching. The parent never changes its environment. The custom harness avoids
+global mutation and unsafe code while keeping absence tests independent of
+the invoking shell:
+
+```sh
+cargo test --test environment --test process_environment
+```
+
 ## Release Workflow Tests
 
 The separate `Release workflow tests` CI job checks the scripts and security

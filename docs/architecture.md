@@ -17,6 +17,10 @@ work between parts. Computation parses, validates, or maps one value.
 
 An `Environment` adapter owns raw value lookup. `ProcessEnvironment` reads from
 the process environment, and `MapEnvironment` stores deterministic test values.
+Process-name syntax is checked inside `ProcessEnvironment` before lookup:
+empty names and names containing `=` or NUL produce `EnvironmentError::InvalidName`.
+Binders and field specs propagate adapter errors; they do not impose that
+namespace on map or custom adapters, or convert such failures into defaults.
 A `Binding<T>` implementation describes one typed variable spec. `Binder`
 applies that spec to an environment source. `ParameterSource` composes several
 typed values into one settings struct.

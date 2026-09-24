@@ -142,9 +142,17 @@ Field specs cover the common startup types: `StringVar`, `OptionalStringVar`,
 `BoolVar`, `IntVar`, `FloatVar`, `ListVar`, `JsonVar`, `EnumVar`,
 `B64DecodedStringVar`, and `U16Var`.
 
+`ProcessEnvironment` rejects empty variable names and names containing `=` or
+NUL. These return `environment_error` with source `EnvironmentError::InvalidName`,
+even for defaulted or optional fields. Valid Unicode names remain supported;
+name matching follows the operating system. `MapEnvironment` and custom
+adapters keep their own naming rules. See the
+[process-name contract](docs/api-guide.md#process-environment-names).
+
 Every field spec supports `.default(...)`, `.validate_default()`, `.allow_empty()`,
 `.sensitive(false)`, and `.validate(...)`. `BindingExt::optional()` wraps any binding spec and converts
-missing or empty errors to `None`. Successful defaults return `Some`; validation errors remain errors.
+missing or empty errors to `None`. Successful defaults return `Some`; adapter,
+parsing, and validation errors remain errors.
 
 ## Field Behavior
 

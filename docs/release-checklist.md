@@ -5,6 +5,12 @@ Use this checklist before publishing a new crate version. See
 
 ## Before Tagging
 
+Run the [release control preflight](release-controls.md#preflight) with an
+authenticated GitHub CLI, and compare the crates.io Trusted Publisher row with
+the documented repository, workflow, and environment. Resolve drift before
+creating a release tag. Release tags cannot be updated or deleted under the
+normal protection policy.
+
 Update `version` in `Cargo.toml` and update `CHANGELOG.md`. Confirm that
 `repository` and `documentation` metadata point to the public project
 locations. Confirm that public API changes appear in `README.md` and `/docs`.
@@ -47,6 +53,12 @@ Confirm the release tag matches the package version. Use
 suffix matching `Cargo.toml` exactly. The `v` prefix is required. Manual runs
 also accept `refs/tags/v0.1.1`; the ref must exist as a tag, not just a branch.
 Confirm that the release workflow regression tests pass in CI.
+
+For manual publication, dispatch the workflow from `main` or the intended
+version tag. The environment checks that workflow ref, independently of the
+`tag` input. Confirm that publication waits for the configured reviewer;
+administrator bypass is disabled and self-review is intentionally allowed for
+the sole maintainer.
 
 Before approving publication, inspect the validation run's release bundle.
 Confirm that `release.json` identifies the intended full commit SHA, tag,

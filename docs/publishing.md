@@ -95,7 +95,7 @@ The publishing workflow uses crates.io Trusted Publishing through
 commit SHAs. It requests a short-lived crates.io token through GitHub OpenID
 Connect, then passes that token to `cargo publish`.
 
-Configure the `envbind` crate on crates.io with these repository values:
+The `envbind` crate's Trusted Publisher must match these values exactly:
 
 | Setting | Value |
 | --- | --- |
@@ -104,8 +104,30 @@ Configure the `envbind` crate on crates.io with these repository values:
 | Workflow | `publish.yml` |
 | Environment | `crates-io` |
 
-The GitHub repository uses a `crates-io` environment. Add required reviewers
-there for explicit release approval.
+The GitHub repository's `crates-io` environment requires approval by
+`OneTesseractInMultiverse`. Self-review is allowed because the repository has
+one maintainer; this is an explicit confirmation gate, not independent review
+by a second person. Administrator bypass is disabled. The environment permits
+the `main` branch and tags matching `v*`; it rejects other branches and tags.
+
+For manual dispatch, select `main` or a permitted version tag as the **workflow
+ref**. The separate `tag` input selects the source to validate and publish; it
+does not control the environment's ref check. A run dispatched from an issue
+branch cannot publish even if its tag input is valid. Release events use the
+release tag as the workflow ref. The workflow performs the stricter version
+and manifest checks described above; the environment's `v*` glob is not a
+SemVer validator.
+
+The active `Protect release tags` ruleset blocks updates and deletion for
+`refs/tags/v*`, with no standing bypass actors. Tag creation remains permitted.
+Use a new version for a correction; do not move an existing release tag.
+
+These environment, ruleset, and registry settings are external configuration.
+The workflow's `environment:` declaration alone does not install protections
+or configure Trusted Publishing. Before each release, run the read-only
+preflight and inspect the registry row using the
+[release control runbook](release-controls.md). That runbook also documents
+configuration recovery and safe approval-gate testing.
 
 ## First Publish
 
@@ -122,7 +144,8 @@ cargo publish
 
 After the first version appears on crates.io, configure Trusted Publishing in
 the crate settings. Later versions publish through the GitHub Actions
-`Publish` workflow.
+`Publish` workflow. The `envbind` crate already exists; this bootstrap procedure
+is only for a new registry package, not routine releases.
 
 ## Routine Release
 
@@ -130,6 +153,7 @@ Update `version` in `Cargo.toml`, then update `CHANGELOG.md`. Confirm the
 `repository` and `documentation` metadata. Run `make verify`, inspect
 `make package-list`, run `make package`, and run `make publish-dry-run`.
 
+Complete the [external release control preflight](release-controls.md#preflight).
 Commit the release changes. Tag the commit with a version tag, such as
 `git tag v0.1.0`. Push the branch and tag, then create a GitHub release from
 the tag.

@@ -63,6 +63,13 @@ command is replaced with a local recorder for the final invocation tests.
 Tests never dispatch workflows, contact a registry, or publish a package. Git
 identity/configuration and Cargo caches are isolated from developer settings.
 
+The same test command checks the release-control preflight against local API
+fixtures. It covers missing approval rules, administrator bypass, reviewer
+changes, branch/tag restrictions, release-tag exceptions and bypass actors,
+main protection drift, and API access failures. It never changes repository
+settings. Live approval-gate verification is a separate maintainer procedure
+using the token-free fixture in the [release control runbook](release-controls.md).
+
 PyYAML 6.0.3 is a pinned, MIT-licensed test dependency used to read the actual
 workflow YAML. It has no runtime dependencies and is excluded from the Rust
 crate package. Maintain its pin with the other CI tooling dependencies.

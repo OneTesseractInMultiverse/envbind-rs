@@ -130,6 +130,11 @@ crate package. Maintain its pin with the other CI tooling dependencies.
 
 ## Coverage Expectations
 
+The normal gate also runs fixed-seed property tests. See
+[property tests and bounded fuzzing](fuzzing.md) for the shared invariants,
+input bounds, isolated nightly targets, seed corpus, CI budgets, and failure
+reproduction/retention procedure.
+
 A [binding contract matrix](binding-contract-matrix.md) maps every field type
 to its common contracts, parser cases, defensive boundaries, and composition
 tests. It also records intentionally unsupported combinations, the fallback

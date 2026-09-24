@@ -21,6 +21,12 @@ and remaining constraints. Fixes
 
 ### Added
 
+Added deterministic property tests and five isolated fuzz targets for parser
+safety, defensive limits, optional-error propagation, round trips, and redaction.
+Added a reviewed synthetic corpus, bounded CI smoke runs, dependency auditing
+for the fuzz workspace, and failure-reproduction guidance. Fixes
+[#18](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/18).
+
 Added a documented regression matrix for all ten field types, covering optional
 error propagation, validation diagnostics, and settings composition. Added exact
 byte and item boundaries, parser callback counters, numeric overflow cases,

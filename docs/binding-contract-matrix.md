@@ -104,8 +104,8 @@ later item exceeds the cap. The excess item itself never reaches the parser.
 - Integer overflow has explicit rejection tests. A finite-only float policy,
   including nonfinite tokens and overflow to infinity, remains
   [#19](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/19).
-  These tests do not establish that unresolved policy. Fuzzing remains
-  [#18](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/18).
+  These tests do not establish that unresolved policy. The separate
+  [property tests and fuzz targets](fuzzing.md) extend this deterministic matrix.
 
 ## Coverage Inspection
 

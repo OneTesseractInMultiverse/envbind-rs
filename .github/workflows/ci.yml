@@ -125,6 +125,44 @@ jobs:
             exit 1
           fi
 
+  fuzz:
+    name: Fuzz smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      FUZZ_TOOLCHAIN: nightly-2026-09-24
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install isolated fuzz tooling
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup toolchain install "$FUZZ_TOOLCHAIN" --profile minimal --component rustfmt
+          cargo +stable install cargo-fuzz --locked --version 0.13.2
+
+      - name: Check fuzz formatting
+        run: cargo +"$FUZZ_TOOLCHAIN" fmt --manifest-path fuzz/Cargo.toml --all -- --check
+
+      - name: Run bounded fuzz targets
+        run: bash fuzz/run.sh 20 20260924
+
+      - name: Retain synthetic failure evidence
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: fuzz-failure-${{ github.sha }}
+          archive: true
+          retention-days: 7
+          if-no-files-found: ignore
+          path: |
+            fuzz/results/*.log
+            fuzz/results/*.txt
+            fuzz/results/Cargo.lock
+            fuzz/results/source.patch
+            fuzz/results/artifacts/**
+
   security:
     name: Security audit
     runs-on: ubuntu-latest
@@ -147,4 +185,5 @@ jobs:
             CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS="$resolution" cargo generate-lockfile
             cargo audit
           done
+          cargo audit --file fuzz/Cargo.lock
           rm -f Cargo.lock

@@ -130,6 +130,11 @@ crate package. Maintain its pin with the other CI tooling dependencies.
 
 ## Coverage Expectations
 
+A [binding contract matrix](binding-contract-matrix.md) maps every field type
+to its common contracts, parser cases, defensive boundaries, and composition
+tests. It also records intentionally unsupported combinations, the fallback
+policy, and a reproducible coverage-inspection command.
+
 A field type needs tests for present values, missing values, explicit empty
 strings, defaults, optional behavior, parser failures, adapter failures,
 validator failures, stable error codes, and composition through

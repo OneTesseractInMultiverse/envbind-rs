@@ -21,6 +21,12 @@ and remaining constraints. Fixes
 
 ### Added
 
+Added a documented regression matrix for all ten field types, covering optional
+error propagation, validation diagnostics, and settings composition. Added exact
+byte and item boundaries, parser callback counters, numeric overflow cases,
+list parsing policies, and JSON/base64 edge cases. Fixes
+[#17](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/17).
+
 Added subprocess integration coverage for production settings loading,
 present/absent/empty and Unicode values, invalid-Unicode adapter failures, and
 safe error output. Stable CI now runs on Linux, macOS, and Windows, with an

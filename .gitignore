@@ -1,5 +1,10 @@
 /target/
 Cargo.lock
+!/fuzz/Cargo.lock
+/fuzz/target/
+/fuzz/results/
+/fuzz/artifacts/
+/fuzz/coverage/
 *.swp
 *.swo
 .DS_Store

@@ -55,6 +55,10 @@ url = "2.5.8"
 # this constraint once a compatible upstream release passes the MSRV tests.
 yoke-derive = "=0.8.2"
 
+[dev-dependencies]
+# Fixed-seed property tests only; process forking and timeouts are disabled.
+proptest = { version = "1.11", default-features = false, features = ["std"] }
+
 [lints.rust]
 missing_docs = "deny"
 unsafe_code = "forbid"

@@ -87,6 +87,20 @@ the review date does not freeze future dependency resolution.
 
 ## Future Updates
 
+Property tests use proptest 1.11 as a development-only dependency, with only
+`std` enabled to avoid subprocess/fork tooling. It supports Rust 1.85 and uses
+the MIT/Apache-2.0 license. The separate non-publishable `fuzz` workspace pins
+libfuzzer-sys 0.4.13 and retains its own lockfile; its LLVM runtime adds the NCSA
+license alongside MIT/Apache-2.0. Both choices and maintenance costs are
+documented in the [fuzzing guide](fuzzing.md).
+
+Dependabot also checks the `/fuzz` Cargo workspace weekly. Security CI audits
+that committed lockfile. Review cargo-fuzz 0.13.2 and the pinned
+`nightly-2026-09-24` toolchain manually with other CI tooling updates; these
+pins are not Cargo dependencies managed by Dependabot. Update the workflow,
+runner default, and guide together, rerun the bounded targets, and record the
+new result. These tools do not change the library's minimum Rust version.
+
 Dependabot checks Cargo, GitHub Actions, and the Python workflow test
 requirements weekly. Keep action references pinned to full release commit SHAs
 with matching version comments, and review major-version migration notes.

@@ -1,0 +1,3 @@
+# Corpus whitespace and line endings are parser input, including intentional
+# trailing spaces, tabs, and NULs. Preserve exact bytes on every checkout.
+/fuzz/corpus/** -text -whitespace

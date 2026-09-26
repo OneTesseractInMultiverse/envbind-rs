@@ -25,6 +25,13 @@ and remaining constraints. Fixes
 
 ### Added
 
+Included README and guide Rust snippets directly in the standard documentation
+test gate. Fixed standalone setup for the README's process-loading example and
+marked process-loading snippets as compile-only to avoid ambient configuration.
+Documented snippet execution rules and added CI checks for guide registration
+and documentation-test coverage across the Rust matrix. Fixes
+[#20](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/20).
+
 Added `validators::is_finite()` and `validators::all_finite()` for scalar and
 list floating-point settings. They reject NaN and infinities, including parsing
 overflow, with safe validation errors. Existing permissive parsing and default

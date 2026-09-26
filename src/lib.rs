@@ -87,6 +87,9 @@
 #![deny(rustdoc::bare_urls)]
 #![deny(rustdoc::broken_intra_doc_links)]
 
+#[cfg(doctest)]
+mod documentation;
+
 pub mod binder;
 pub mod environment;
 pub mod error;

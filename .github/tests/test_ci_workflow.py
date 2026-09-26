@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+import re
 import subprocess
 import unittest
 
@@ -68,3 +69,16 @@ class CiWorkflowTests(unittest.TestCase):
     def test_all_targets_run_without_platform_conditions(self):
         step = next(step for step in self.jobs["rust"]["steps"] if step.get("name") == "Test")
         self.assertEqual((step["run"], step.get("if")), ("cargo test --all-targets", None))
+
+    def test_documentation_runs_without_platform_conditions(self):
+        step = next(step for step in self.jobs["rust"]["steps"] if step.get("name") == "Test docs")
+        self.assertEqual((step["run"], step.get("if")), ("cargo test --doc", None))
+
+    def test_documentation_includes_readme_and_every_guide(self):
+        root = WORKFLOW.parents[2]
+        harness = root / "src" / "documentation.rs"
+        included = {
+            (harness.parent / path).resolve()
+            for path in re.findall(r'include_str!\("([^"]+)"\)', harness.read_text())
+        }
+        self.assertEqual(included, {root / "README.md", *root.joinpath("docs").rglob("*.md")})

@@ -7,8 +7,8 @@ production configuration, contact services, or use real credentials.
 
 ## Normal Test Gate
 
-[properties.rs](../tests/properties.rs) contains 15 deterministic properties.
-Fourteen run 128 cases each; the larger raw-list property runs 32 cases. They
+[properties.rs](../tests/properties.rs) contains 17 deterministic properties.
+Sixteen run 128 cases each; the larger raw-list property runs 32 cases. They
 use ChaCha with the fixed seed `0x7e1c20260918`, bounded shrinking (1,024
 iterations), and no filesystem failure persistence, forking, or timeouts.
 Case counts, seed, RNG, rejection limits, and shrinking settings are explicitly
@@ -48,10 +48,13 @@ caught and converted into a successful outcome.
 
 Optional checks compare complete structured errors with the underlying binding;
 only missing/empty errors become `None`. Successful float comparisons use their
-debug representation to accommodate NaN without defining a finite-only policy.
-Finite round trips compare exact bits, including signed zero. The policy in
-[#19](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/19) remains
-separate.
+debug representation to accommodate the default permissive NaN parsing.
+Finite round trips compare exact bits, including signed zero. Scalar and list
+targets also check the opt-in finite policy against the original parser result:
+finite values retain their bits, non-finite values become validation errors,
+and other errors remain unchanged. The normal property gate explicitly
+generates NaN, infinities, arbitrary float bit patterns, and typed fallbacks.
+See the [floating-point policy](api-guide.md#finite-floating-point-settings).
 
 There is no guarantee that arbitrary caller-provided callbacks cannot panic.
 The harness uses only known, bounded callbacks. It also does not claim that
@@ -88,7 +91,7 @@ Decoded invalid UTF-8 is still tested through valid base64 text.
 
 ## Seed Corpus
 
-The 38 reviewed files under [fuzz/corpus](../fuzz/corpus) contain only synthetic
+The 45 reviewed files under [fuzz/corpus](../fuzz/corpus) contain only synthetic
 data. They include:
 
 - Valid multibyte JSON, malformed objects, trailing data, a byte-limit fixture,
@@ -99,9 +102,10 @@ data. They include:
   Unicode whitespace, numeric overflow, 65 list items, and the raw-limit trigger.
 - Valid URLs with synthetic credentials, malformed IPv6 and ports, a NUL,
   scheme-less authorities, Unicode hosts, and disallowed explicit schemes.
-- Scalar boundaries, overflow, whitespace, scientific notation, NaN, and
-  multibyte text. Empty files document empty-input cases; libFuzzer also supplies
-  empty input itself.
+- Scalar boundaries, overflow, whitespace, scientific notation, NaN, both
+  infinities, positive/negative float overflow, and multibyte text. List seeds
+  also include non-finite elements. Empty files document empty-input cases;
+  libFuzzer also supplies empty input itself.
 
 Git attributes preserve corpus bytes across checkouts, including intentional
 whitespace and line endings.
@@ -195,3 +199,23 @@ After extending the list checks to both enum matching policies, a fresh
 336,083 executions (31 seconds elapsed, 364-MiB peak RSS). The affected property
 tests passed again on stable and Rust 1.85. Together these runs completed
 6,819,138 executions without a failure.
+
+### Finite Policy and Dependency Refresh on 2026-09-26
+
+A fresh full run based on `fbe81b9` plus the staged finite-policy changes used
+the updated fuzz lock, the same pinned compiler and cargo-fuzz versions,
+AddressSanitizer, seed `20260926`, and all 45 reviewed seeds. Each target had a
+20-second budget and reported 21 seconds elapsed.
+
+| Target | Executions | Peak RSS (MiB) | Result |
+| --- | ---: | ---: | --- |
+| JSON | 915,107 | 567 | Passed |
+| Base64 | 1,261,692 | 657 | Passed |
+| List | 597,513 | 425 | Passed |
+| URL | 760,757 | 614 | Passed |
+| Scalars | 489,699 | 591 | Passed |
+
+All 4,024,768 executions completed without invariant, sanitizer, timeout, or
+memory-limit failures. The source patch, lock, and per-target logs were retained
+with the local run metadata. The same smoke-test limitations described above
+apply; these execution counts do not establish exhaustive input coverage.

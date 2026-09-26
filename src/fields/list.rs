@@ -48,6 +48,10 @@ impl ListVar<i64> {
 
 impl ListVar<f64> {
     /// Build a floating-point list variable.
+    ///
+    /// Items accept NaN, both infinities, and overflow to infinity (`1e999`).
+    /// Attach [`crate::validators::all_finite`] to reject non-finite elements.
+    /// Enable [`Self::validate_default`] to cover typed fallback elements too.
     #[must_use]
     pub fn floats(name: impl Into<VariableName>) -> Self {
         Self::new(name, |value| {

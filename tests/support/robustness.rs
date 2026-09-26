@@ -227,6 +227,32 @@ pub fn check_list(raw: &str, delimiter: &str, limit: usize, keep_whitespace: boo
             .delimiter(delimiter)
             .max_items(limit),
     )?;
+    let mut floats = ListVar::floats("VALUE")
+        .delimiter(delimiter)
+        .max_items(limit);
+    if keep_whitespace {
+        floats = floats.keep_whitespace();
+    }
+    let expected = binder.bind(&floats).and_then(|values| {
+        if values.iter().all(|value| value.is_finite()) {
+            Ok(values.into_iter().map(f64::to_bits).collect::<Vec<_>>())
+        } else {
+            Err(BindError::validation_with_sensitivity(
+                "VALUE",
+                ValidationError::new("all list items must be finite"),
+                true,
+            ))
+        }
+    });
+    let floats = floats.validate(validators::all_finite());
+    let actual = binder
+        .bind(&floats)
+        .map(|values| values.into_iter().map(f64::to_bits).collect::<Vec<_>>());
+    require(
+        actual == expected,
+        "finite list policy changed values or errors",
+    )?;
+    optional_contract(&binder, floats)?;
     optional_contract(
         &binder,
         ListVar::booleans("VALUE")
@@ -330,6 +356,24 @@ pub fn check_scalars(raw: &str, limit: usize) -> Check {
     let binder = Binder::new(MapEnvironment::from_pairs([("VALUE", raw)]));
     optional_contract(&binder, IntVar::new("VALUE"))?;
     optional_contract(&binder, FloatVar::new("VALUE"))?;
+    let expected = binder.bind(&FloatVar::new("VALUE")).and_then(|value| {
+        if value.is_finite() {
+            Ok(value.to_bits())
+        } else {
+            Err(BindError::validation_with_sensitivity(
+                "VALUE",
+                ValidationError::new("value must be finite"),
+                true,
+            ))
+        }
+    });
+    let finite = FloatVar::new("VALUE").validate(validators::is_finite());
+    let actual = binder.bind(&finite).map(f64::to_bits);
+    require(
+        actual == expected,
+        "finite scalar policy changed values or errors",
+    )?;
+    optional_contract(&binder, finite)?;
     optional_contract(&binder, BoolVar::new("VALUE"))?;
     optional_contract(&binder, U16Var::new("VALUE"))?;
     optional_contract(

@@ -8,6 +8,10 @@ The project uses semantic versioning.
 
 ### Changed
 
+Refreshed the fuzzing lockfile to cc 1.5.1, find-msvc-tools 0.1.14, and
+smallvec 1.16.2. Rechecked all dependency and tooling versions on 2026-09-26;
+documented the remaining MSRV and upstream compatibility constraints.
+
 Updated base64 to 0.23.1 while retaining the existing scalar decoder and Rust
 1.85 support. Updated cargo-audit to 0.22.2, checkout to v7.0.1, upload-artifact
 to v7.0.1, and crates-io-auth-action to v1.0.5 with verified commit pins.
@@ -20,6 +24,13 @@ and remaining constraints. Fixes
 [#13](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/13).
 
 ### Added
+
+Added `validators::is_finite()` and `validators::all_finite()` for scalar and
+list floating-point settings. They reject NaN and infinities, including parsing
+overflow, with safe validation errors. Existing permissive parsing and default
+behavior remain unchanged; use `.validate_default()` to cover typed fallbacks.
+Added timeout/rate examples, regression tests, and property/fuzz checks. Fixes
+[#19](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/19).
 
 Added deterministic property tests and five isolated fuzz targets for parser
 safety, defensive limits, optional-error propagation, round trips, and redaction.

@@ -291,6 +291,79 @@ assert_eq!(hosts, vec!["api", "worker", "db"]);
 # Ok::<(), envbind::BindError>(())
 ```
 
+### Finite Floating-Point Settings
+
+`FloatVar` and `ListVar::floats` use Rust's `f64` parser. They accept `NaN`,
+`inf`, `-inf`, and values that overflow to infinity, such as `1e999` and
+`-1e999`. This permissive behavior remains the default for compatibility.
+Finite-only validation is an explicit application policy; there is no planned
+default change in this release. Changing that default would require a
+documented breaking release and migration guidance for callers using non-finite
+values.
+
+Attach `validators::is_finite()` to a scalar or `validators::all_finite()` to a
+float list. Both reject NaN and either infinity with `validation_failed`.
+Diagnostics follow the normal sensitivity setting; even with
+`.sensitive(false)`, these helpers use fixed messages without input values or
+item positions. Optional wrappers preserve these failures.
+
+Both signs of zero, finite negative numbers, subnormal values, and ordinary
+exponent notation remain valid. Underflow can produce signed zero and remains
+valid. An empty typed list is valid for `all_finite()`; enforce length separately
+when needed. Empty environment input still follows the normal missing/empty
+policy rather than becoming an empty list.
+
+Compose finite validation with a lower bound for nonnegative rates. A lower
+bound by itself admits positive infinity. Use finite bounds appropriate to the
+application for timeouts and delays: even a finite `f64::MAX` cannot fit in a
+`Duration`. Prefer `Duration::try_from_secs_f64` for fallible conversion.
+
+```rust
+use std::time::Duration;
+use envbind::{Binder, FloatVar, ListVar, MapEnvironment, validators};
+
+let binder = Binder::new(MapEnvironment::from_pairs([
+    ("TIMEOUT_SECONDS", "2.5e1"),
+    ("REQUESTS_PER_SECOND", "100"),
+    ("RETRY_DELAYS", "0.1,0.5,1"),
+]));
+let seconds = binder.bind(
+    &FloatVar::new("TIMEOUT_SECONDS")
+        .default(30.0)
+        .validate_default()
+        .validate(validators::is_finite())
+        .validate(validators::in_range(0.0, 300.0)),
+)?;
+let timeout = Duration::try_from_secs_f64(seconds)?;
+let rate = binder.bind(
+    &FloatVar::new("REQUESTS_PER_SECOND")
+        .default(100.0)
+        .validate_default()
+        .validate(validators::is_finite())
+        .validate(validators::min_value(0.0)),
+)?;
+let delays = binder.bind(
+    &ListVar::floats("RETRY_DELAYS")
+        .default(vec![0.1, 0.5, 1.0])
+        .validate_default()
+        .validate(validators::all_finite())
+        .validate(|values| values.iter().copied().try_for_each(validators::in_range(0.0, 300.0))),
+)?;
+assert_eq!((timeout, rate, delays), (Duration::from_secs(25), 100.0, vec![0.1, 0.5, 1.0]));
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+`.default(...)` continues to bypass validation unless `.validate_default()` is
+enabled. For example, a NaN fallback remains accepted without that option even
+when `is_finite()` is attached. Float-list defaults bypass item parsing, so
+attach `all_finite()` as a whole-list validator and enable `.validate_default()`
+to enforce the same invariant on every fallback element. These rules apply
+equally to missing input and empty input that selects a fallback. Malformed
+present input never selects a fallback.
+
+The executable [finite settings example](../examples/finite_settings.rs) applies
+these policies when loading process configuration at startup.
+
 ## JSON, Enum, and Base64 Examples
 
 `JsonVar` parses a value into `serde_json::Value`. The raw JSON payload uses a
@@ -341,8 +414,8 @@ Use validators for startup checks. Keep domain rules in domain code.
 Configuration validation protects the boundary between raw text and typed
 settings.
 
-Helpers include `in_range`, `min_value`, `max_value`, `one_of`,
-`one_of_values`, `min_length`, `max_length`, `matches_pattern`, `is_url`,
+Helpers include `is_finite`, `all_finite`, `in_range`, `min_value`, `max_value`,
+`one_of`, `one_of_values`, `min_length`, `max_length`, `matches_pattern`, `is_url`,
 `is_url_with_options`, `is_email`, `all_of`, and `all_of_str`.
 
 ```rust

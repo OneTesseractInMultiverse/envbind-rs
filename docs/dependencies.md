@@ -5,7 +5,46 @@ requirements compatible with that minimum and review CI tooling separately.
 `Cargo.lock` remains untracked; release validation preserves its generated,
 audited lockfile in the release artifact.
 
-## Review on 2026-09-22
+## Review on 2026-09-26
+
+Rechecked every resolved registry package against the latest non-yanked stable
+release on crates.io, plus the pinned tools, PyPI requirements, and GitHub
+Actions releases. The runtime requirements still resolve base64 0.23.1,
+regex 1.13.1, serde_json 1.0.151, and url 2.5.8. Proptest 1.11.0,
+libfuzzer-sys 0.4.13, cargo-fuzz 0.13.2, cargo-audit 0.22.2, and PyYAML 6.0.3
+remain current. All four action versions and full commit pins below were
+reverified and remain current.
+
+Refreshed the committed fuzz lockfile to cc 1.5.1, find-msvc-tools 0.1.14, and
+smallvec 1.16.2. Both fresh root resolutions contain 64 registry packages; the
+fuzz workspace contains 56. All three graphs passed cargo-audit 0.22.2 without
+vulnerability findings or maintenance warnings. Root MSRV tests passed with
+the refreshed compatible graph.
+
+The remaining older selections are deliberate compatibility constraints:
+
+- An isolated fresh build of yoke-derive 0.8.3 still fails on Rust 1.85 at
+  `str::from_utf8`. Keep the 0.8.2 constraint until upstream fixes its compiler
+  compatibility or an intentional MSRV change is made. Its syn 2 and
+  synstructure 0.13 dependencies cannot be replaced with their newer major
+  versions by a lockfile refresh.
+- The latest proptest still requires rand/rand_core/rand_chacha 0.9 and
+  rand_xorshift 0.4. That chain selects getrandom 0.3, r-efi 5, wasip2 1, and
+  compatible wit-bindgen releases. Their newest incompatible release lines
+  need upstream adoption; adding direct pins would not migrate these users.
+- The MSRV resolver retains the older ICU/idna versions described below and
+  wasip2 1.0.1+wasi-0.2.4 with wit-bindgen 0.46.0. The stable graph selects
+  wasip2 1.0.4+wasi-0.2.12 with wit-bindgen 0.57.1. Wasip2 1.0.4 requires
+  Rust 1.87; its latest 2.x line is outside getrandom's requirement.
+- The fuzz workspace's getrandom 0.4 selects r-efi 6 rather than the latest
+  incompatible 7.x line. This target-specific dependency is outside the normal
+  library runtime graph.
+
+Keep the tested `nightly-2026-09-24` fuzz compiler pin for reproducible runs;
+nightly snapshots are reviewed tooling choices, not stable dependency releases.
+The library's Rust 1.85 minimum is unchanged.
+
+## Earlier Review on 2026-09-22
 
 Versions were checked against crates.io, PyPI, and upstream GitHub release tags.
 Existing compatible requirements for regex, JSON, and URL parsing did not need
@@ -57,7 +96,7 @@ CI checks two fresh dependency resolutions:
 
 The security job audits both resolutions. Release validation retains Cargo's
 MSRV-aware default resolution and audits that exact lockfile before packaging.
-Both reviewed graphs contain 46 registry packages and passed cargo-audit 0.22.2
+Both graphs reviewed on 2026-09-22 contained 46 registry packages and passed cargo-audit 0.22.2
 without vulnerability findings or maintenance warnings.
 
 The stable dependency graph is now exercised by native Linux, macOS, and

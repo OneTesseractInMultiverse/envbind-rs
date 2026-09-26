@@ -101,10 +101,11 @@ later item exceeds the cap. The excess item itself never reaches the parser.
 - The fixed scalar/list raw-byte cap has no public override. JSON nesting is
   guarded by its parser; there is no public configurable depth limit, and the
   nesting test does not establish an exact public depth threshold.
-- Integer overflow has explicit rejection tests. A finite-only float policy,
-  including nonfinite tokens and overflow to infinity, remains
-  [#19](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/19).
-  These tests do not establish that unresolved policy. The separate
+- Integer overflow has explicit rejection tests. The
+  [finite float tests](../tests/finite_floats.rs) cover the opt-in scalar/list
+  validators, non-finite tokens, overflow to infinity, exact finite bits,
+  default validation, optional failures, safe errors, and range composition.
+  Parsing remains permissive without these validators. The separate
   [property tests and fuzz targets](fuzzing.md) extend this deterministic matrix.
 
 ## Coverage Inspection

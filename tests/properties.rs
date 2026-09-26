@@ -5,7 +5,7 @@ mod robustness;
 
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
-use envbind::{B64DecodedStringVar, Binder, MapEnvironment, StringVar, validators};
+use envbind::{B64DecodedStringVar, Binder, FloatVar, MapEnvironment, StringVar, validators};
 use proptest::prelude::*;
 use proptest::test_runner::{Config, RngAlgorithm, RngSeed};
 use serde_json::json;
@@ -136,6 +136,29 @@ proptest! {
         float in any::<f64>().prop_filter("finite round trips only", |value| value.is_finite()),
     ) {
         prop_assert_eq!(robustness::check_scalar_roundtrip(integer, port, boolean, float), Ok(()));
+    }
+
+    #[test]
+    fn generated_float_policies_accept_exactly_the_finite_values(
+        values in proptest::collection::vec(prop_oneof![
+            Just(f64::NAN), Just(f64::INFINITY), Just(f64::NEG_INFINITY),
+            any::<u64>().prop_map(f64::from_bits),
+        ], 1..=16),
+    ) {
+        let text = values.iter().map(|value| format!("{value:e}")).collect::<Vec<_>>();
+        let result = text.iter().try_for_each(|raw| robustness::check_scalars(raw, 0))
+            .and_then(|()| robustness::check_list(&text.join(","), ",", values.len(), false));
+        prop_assert_eq!(result, Ok(()));
+    }
+
+    #[test]
+    fn generated_float_defaults_obey_finite_validation(bits in any::<u64>()) {
+        let value = f64::from_bits(bits);
+        let result = Binder::new(MapEnvironment::new()).bind(
+            &FloatVar::new("VALUE").default(value).validate_default().validate(validators::is_finite()),
+        ).map(f64::to_bits).map_err(|error| error.error_code());
+        let expected = if value.is_finite() { Ok(bits) } else { Err("validation_failed") };
+        prop_assert_eq!(result, expected);
     }
 
     #[test]

@@ -25,6 +25,13 @@ and remaining constraints. Fixes
 
 ### Added
 
+Added `validators::is_finite()` and `validators::all_finite()` for scalar and
+list floating-point settings. They reject NaN and infinities, including parsing
+overflow, with safe validation errors. Existing permissive parsing and default
+behavior remain unchanged; use `.validate_default()` to cover typed fallbacks.
+Added timeout/rate examples, regression tests, and property/fuzz checks. Fixes
+[#19](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/19).
+
 Added deterministic property tests and five isolated fuzz targets for parser
 safety, defensive limits, optional-error propagation, round trips, and redaction.
 Added a reviewed synthetic corpus, bounded CI smoke runs, dependency auditing

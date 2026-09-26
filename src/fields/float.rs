@@ -9,6 +9,11 @@ use super::raw::resolve_raw;
 type F64Validator = dyn Fn(f64) -> Result<(), ValidationError> + Send + Sync + 'static;
 
 /// Bind one `f64` value.
+///
+/// Parsing accepts NaN, both infinities, and overflow to infinity (`1e999`).
+/// Attach [`crate::validators::is_finite`] to reject non-finite values, and
+/// enable [`Self::validate_default`] to apply that policy to typed fallbacks.
+/// Range validators can impose additional application-specific bounds.
 pub struct FloatVar {
     name: VariableName,
     default: Option<f64>,

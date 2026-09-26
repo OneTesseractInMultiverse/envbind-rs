@@ -79,6 +79,73 @@ where
     }
 }
 
+/// Require a finite `f64`, rejecting NaN and both infinities.
+///
+/// This also rejects overflow to infinity during parsing, such as `1e999`.
+/// Negative finite values, both signs of zero, and subnormal values are valid.
+/// Compose with a range or lower-bound validator for domain-specific limits.
+/// The error message never includes the value.
+///
+/// Attach to [`crate::FloatVar`] with `.validate(is_finite())`. Parsing remains
+/// permissive without this validator. Enable `.validate_default()` to apply it
+/// to typed fallbacks as well. Use [`all_finite`] for floating-point lists.
+///
+/// ```
+/// use std::time::Duration;
+/// use envbind::{Binder, FloatVar, MapEnvironment, validators};
+///
+/// let seconds = Binder::new(MapEnvironment::new()).bind(
+///     &FloatVar::new("TIMEOUT_SECONDS")
+///         .default(30.0)
+///         .validate_default()
+///         .validate(validators::is_finite())
+///         .validate(validators::in_range(0.0, 300.0)),
+/// )?;
+/// let timeout = Duration::try_from_secs_f64(seconds)?;
+/// assert_eq!(timeout, Duration::from_secs(30));
+/// # Ok::<(), Box<dyn std::error::Error>>(())
+/// ```
+#[must_use = "pass validators to a variable spec"]
+pub fn is_finite() -> impl Fn(f64) -> Result<(), ValidationError> + Send + Sync + 'static {
+    |value| {
+        if value.is_finite() {
+            Ok(())
+        } else {
+            Err(ValidationError::new("value must be finite"))
+        }
+    }
+}
+
+/// Require every element of an `f64` slice to be finite.
+///
+/// Rejects NaN and both infinities, including overflow to infinity during
+/// parsing. Negative finite values, signed zero, and subnormal values are
+/// valid. An empty slice is valid. The error contains neither values nor item
+/// positions. Use a separate validator to enforce length or numeric ranges.
+///
+/// Attach to [`crate::ListVar::floats`] with `.validate(all_finite())`. Enable
+/// `.validate_default()` to cover typed fallbacks, which bypass item parsing.
+/// See [`is_finite`] for the scalar policy.
+///
+/// ```
+/// use envbind::{Binder, ListVar, MapEnvironment, validators};
+///
+/// let result = Binder::new(MapEnvironment::from_pairs([("DELAYS", "0.1,1e999")]))
+///     .bind(&ListVar::floats("DELAYS").validate(validators::all_finite()))
+///     .map_err(|error| error.error_code());
+/// assert_eq!(result, Err("validation_failed"));
+/// ```
+#[must_use = "pass validators to a variable spec"]
+pub fn all_finite() -> impl Fn(&[f64]) -> Result<(), ValidationError> + Send + Sync + 'static {
+    |values| {
+        if values.iter().all(|value| value.is_finite()) {
+            Ok(())
+        } else {
+            Err(ValidationError::new("all list items must be finite"))
+        }
+    }
+}
+
 /// Require a numeric value within an inclusive range.
 #[must_use = "pass validators to a variable spec"]
 pub fn in_range<T>(

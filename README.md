@@ -201,6 +201,30 @@ assert_eq!(port, 8080);
 # Ok::<(), envbind::BindError>(())
 ```
 
+`FloatVar` and `ListVar::floats` accept NaN, infinities, and overflow to infinity
+by default. Use `validators::is_finite()` for scalars and
+`validators::all_finite()` for lists. Enable `.validate_default()` to enforce
+the rule on fallbacks too. Finite values still need application-specific bounds:
+
+```rust
+use std::time::Duration;
+use envbind::{Binder, FloatVar, MapEnvironment, validators};
+
+let seconds = Binder::new(MapEnvironment::new()).bind(
+    &FloatVar::new("TIMEOUT_SECONDS")
+        .default(30.0)
+        .validate_default()
+        .validate(validators::is_finite())
+        .validate(validators::in_range(0.0, 300.0)),
+)?;
+let timeout = Duration::try_from_secs_f64(seconds)?;
+assert_eq!(timeout, Duration::from_secs(30));
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+See the [floating-point policy](docs/api-guide.md#finite-floating-point-settings)
+and [timeout, rate, and retry example](examples/finite_settings.rs).
+
 `validators::is_url()` parses HTTP/HTTPS URLs and requires a host and a valid port when supplied.
 `is_url_with_options` supports custom schemes and optional schemes. Every explicit scheme is checked against the
 allowlist. Optional-scheme input accepts bare hostnames; prefix authorities containing ports, credentials, or IPv6

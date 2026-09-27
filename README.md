@@ -118,10 +118,16 @@ fn main() -> Result<(), envbind::BindError> {
 }
 ```
 
-Load the process environment at the application boundary:
+Load the process environment at the application boundary. This startup snippet
+is compiled but not executed by documentation tests because it reads the
+application's process environment:
 
-```rust
-let settings = Settings::from_process_environment() ?;
+```rust,no_run
+# use envbind::{BindError, ParameterSource};
+# fn load<Settings: ParameterSource>() -> Result<Settings, BindError> {
+let settings = Settings::from_process_environment()?;
+# Ok(settings)
+# }
 ```
 
 ## Public API
@@ -325,7 +331,10 @@ make publish-dry-run
 ```
 
 `make verify` is the main local gate. It checks formatting, type checks the crate, runs Clippy, runs tests, runs doc
-tests, and builds docs.rs-style docs.
+tests, and builds docs.rs-style docs. The documentation tests include Rust
+snippets directly from this README and every guide under `docs/`. See the
+[documentation test gate](docs/testing-guide.md#documentation-tests) for snippet
+setup and execution rules.
 
 ## Publishing Readiness
 

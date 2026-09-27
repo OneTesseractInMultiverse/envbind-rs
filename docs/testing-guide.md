@@ -32,12 +32,68 @@ environment variables.
 | `make fmt` | Format Rust code. |
 | `make lint` | Run Clippy with warnings denied. |
 | `make test` | Run target tests. |
-| `make test-doc` | Run rustdoc examples. |
+| `make test-doc` | Test API, README, and guide examples. |
 | `make doc` | Build docs.rs-style docs. |
 | `make verify` | Run the local quality gate. |
 
 `make verify` is the main local gate. It runs formatting checks, Cargo check,
 Clippy, tests, rustdoc examples, and docs.rs-style docs.
+
+## Documentation Tests
+
+`make test-doc` runs `cargo test --doc`. Alongside API documentation, rustdoc
+reads `README.md` and every Markdown guide under `docs/` through
+[`src/documentation.rs`](../src/documentation.rs). Each file is attached to a
+private module using `#[doc = include_str!(...)]`. The crate includes that
+module only under `#[cfg(doctest)]`, so it adds no public API or rendered
+documentation pages. Snippets stay in their published Markdown source; there
+are no separate copies of their tested code.
+
+The existing `make verify` gate and the CI `Test docs` step run these same
+checks. CI executes them on Rust 1.85 and stable Linux, macOS, and Windows.
+Use `make test-doc CARGO='cargo +1.85.0'` to select the minimum compiler locally.
+To focus on the included Markdown or list discovered snippets:
+
+```sh
+cargo test --doc documentation::
+cargo test --doc -- --list
+```
+
+At introduction, the gate discovers 30 snippets: 5 API examples and 25 from
+Markdown (9 README, 14 API guide, 1 architecture, and 1 testing guide). Two
+process-loading examples compile without running; the other 28 compile and
+execute. No Rust examples are ignored. Counts can grow with the documentation;
+the other registered guides currently contain only non-Rust code blocks.
+
+Follow these rules when editing examples:
+
+- Use `rust` fences for executable examples. Prefer `MapEnvironment` and
+  synthetic values so assertions run without external configuration or services.
+- Give each snippet its own imports and setup. Rustdoc compiles snippets
+  independently; an earlier block's definitions are not in scope. Lines starting
+  with `# ` supply hidden rustdoc setup. The process-loading snippets use a
+  hidden generic function bounded by `ParameterSource`, so the method is checked
+  without duplicating a settings implementation.
+- Use `rust,no_run` only when execution needs an external boundary, and explain
+  the reason in adjacent prose. The README and API guide process-loading calls
+  are compile-only because they read arbitrary process configuration. The API
+  guide's invalid-name example executes: it rejects the name before any lookup.
+  Real process loading remains covered by the isolated subprocess tests below.
+- Use a non-Rust language fence such as `text`, `sh`, or `toml` for pseudocode
+  or other languages. Do not mark working Rust examples `ignore` to hide errors.
+  Use `compile_fail` only to demonstrate an intentional compile-time rejection,
+  with an explanation of the rule being tested.
+- Register every new Markdown guide in `src/documentation.rs`, even if it has
+  no Rust examples yet. The workflow test suite checks this inventory and that
+  CI does not skip documentation tests on any Rust matrix entry.
+
+An API typo in any checked Rust snippet must make `make test-doc` fail, including
+within a `no_run` block. A failing assertion in an executable snippet must also
+fail the gate. To verify the wiring after changing the harness, temporarily
+misspell a method in a registered guide, run the command, confirm a nonzero
+exit and the Markdown filename in the diagnostic, and restore the method before
+committing. The Rustdoc Book documents
+[doctest-only includes and snippet attributes](https://doc.rust-lang.org/rustdoc/write-documentation/documentation-tests.html).
 
 ## Process Environment Tests
 

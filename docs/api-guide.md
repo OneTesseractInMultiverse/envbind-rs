@@ -54,20 +54,15 @@ variable, the target type, the default, and the validation rule.
 ## Environment Sources
 
 Use process loading only at the application boundary. This call reads the
-actual process environment:
+actual process environment, so documentation tests compile it without running
+it against developer or CI configuration:
 
-```rust
-# use envbind::{BindError, Binder, Environment, ParameterSource, StringVar};
-# #[derive(Debug, Clone, PartialEq, Eq)]
-# struct Settings { host: String }
-# impl ParameterSource for Settings {
-#     fn bind<E: Environment>(binder: &Binder<E>) -> Result<Self, BindError> {
-#         Ok(Self { host: binder.bind(&StringVar::new("HOST").default("localhost"))? })
-#     }
-# }
+```rust,no_run
+# use envbind::{BindError, ParameterSource};
+# fn load<Settings: ParameterSource>() -> Result<Settings, BindError> {
 let settings = Settings::from_process_environment()?;
-# let _ = settings;
-# Ok::<(), BindError>(())
+# Ok(settings)
+# }
 ```
 
 Adapter read failures return `BindError` with code `environment_error`. One

@@ -17,7 +17,7 @@ help:
 		'package-list    List files included in the crate package' \
 		'publish-dry-run Run cargo publish dry-run' \
 		'test            Run all target tests' \
-		'test-doc        Run rustdoc examples' \
+		'test-doc        Test API, README, and guide examples' \
 		'verify          Run the local quality gate'
 
 build:

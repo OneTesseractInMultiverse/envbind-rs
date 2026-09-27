@@ -5,6 +5,33 @@ requirements compatible with that minimum and review CI tooling separately.
 `Cargo.lock` remains untracked; release validation preserves its generated,
 audited lockfile in the release artifact.
 
+## yoke-derive 0.8.3 Review on 2026-09-27
+
+[PR #30](https://github.com/OneTesseractInMultiverse/envbind-rs/pull/30) proposes
+changing the exact constraint from 0.8.2 to 0.8.3. Its
+[CI run](https://github.com/OneTesseractInMultiverse/envbind-rs/actions/runs/36335531450)
+fails the Rust 1.85 job in `yoke-derive/src/lib.rs:202`: the macro calls the
+inherent `str::from_utf8` function, which was
+[stabilized in Rust 1.87](https://doc.rust-lang.org/std/primitive.str.html#method.from_utf8).
+The release declares no `rust-version`, so Cargo's MSRV-aware resolver cannot
+filter it out. An isolated crate depending only on `yoke-derive = "=0.8.3"`
+reproduced error `E0599` with Rust 1.85.0 and compiled with Rust 1.98.1.
+
+Keep `yoke-derive = "=0.8.2"` and the Rust 1.85 support contract. Dependabot
+ignores exactly `=0.8.3` in both Cargo workspaces; it does not ignore the whole
+dependency or subsequent versions. The leading `=` is intentional: a bare
+Cargo requirement would also match later compatible versions. See the
+[Dependabot ignore options](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#ignore).
+Remove the ignore rule and compatibility pin when a fixed upstream release
+passes the MSRV gate, or revisit both as part of an explicit MSRV policy change.
+Advisory audits and maintainer triage continue; this is a compiler-compatibility
+constraint, not a vulnerability exception.
+
+The same PR also fails fuzzing because `fuzz/Cargo.lock` still selects 0.8.2.
+For an accepted root dependency change, refresh and review the committed fuzz
+lock in the same change, then run its locked fetch, advisory audit, and bounded
+smoke gate. Updating that lock alone would not fix the compiler failure.
+
 ## Review on 2026-09-26
 
 Rechecked every resolved registry package against the latest non-yanked stable

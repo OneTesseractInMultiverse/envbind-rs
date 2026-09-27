@@ -57,10 +57,20 @@ The crates.io package name is `envbind`. The GitHub repository is
 `OneTesseractInMultiverse/envbind-rs`. Rust code imports the crate as
 `envbind`.
 
+This checkout prepares **0.2.0**, which has not been published yet. The latest
+published version is 0.1.0; the intermediate 0.1.1 metadata change was not
+published. This README describes the upcoming API and behavior. Review the
+[migration guide](docs/migrating-to-0.2.md) before upgrading and the
+[release-readiness record](docs/release-readiness.md) for validation and support
+limits. After 0.2.0 is published, use:
+
 ```toml
 [dependencies]
-envbind = "0.1.1"
+envbind = "0.2.0"
 ```
+
+Until then, build this checkout directly or use a Cargo path dependency to a
+reviewed local checkout; the registry requirement above is not yet installable.
 
 Then import the Rust crate name:
 

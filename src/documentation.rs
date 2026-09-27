@@ -21,6 +21,9 @@ mod dependencies {}
 #[doc = include_str!("../docs/fuzzing.md")]
 mod fuzzing {}
 
+#[doc = include_str!("../docs/migrating-to-0.2.md")]
+mod migrating_to_0_2 {}
+
 #[doc = include_str!("../docs/open-source.md")]
 mod open_source {}
 
@@ -32,6 +35,9 @@ mod release_checklist {}
 
 #[doc = include_str!("../docs/release-controls.md")]
 mod release_controls {}
+
+#[doc = include_str!("../docs/release-readiness.md")]
+mod release_readiness {}
 
 #[doc = include_str!("../docs/testing-guide.md")]
 mod testing_guide {}

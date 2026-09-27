@@ -6,7 +6,13 @@ The latest published minor line receives vulnerability fixes.
 
 | Version | Status |
 | --- | --- |
-| `0.1.x` | Supported |
+| `0.2.x` | Upcoming release line; not yet published |
+| `0.1.x` | Latest published line; reviewed fixes are prepared in 0.2.0 |
+
+The current published version is 0.1.0. The repository's 0.2.0 validation and
+fixes do not retroactively apply to that package. On publication, 0.2.x becomes
+the supported minor line; consumers should follow the
+[migration guide](docs/migrating-to-0.2.md).
 
 ## Reporting a Vulnerability
 

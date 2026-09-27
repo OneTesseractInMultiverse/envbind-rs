@@ -26,9 +26,9 @@ validate a tag without publishing. Manual runs can publish with the `publish`
 input after approval through the protected environment.
 
 Release tags match the package version in `Cargo.toml`. Use
-`vMAJOR.MINOR.PATCH`, such as `v0.1.1`. SemVer prerelease and build suffixes are
+`vMAJOR.MINOR.PATCH`, such as `v0.2.0`. SemVer prerelease and build suffixes are
 supported, for example `v1.2.3-rc.1+build.001`. Manual runs also accept the fully
-qualified form `refs/tags/v0.1.1`. The `v` prefix is required; bare versions,
+qualified form `refs/tags/v0.2.0`. The `v` prefix is required; bare versions,
 branch names, commit hashes, and malformed versions are rejected.
 
 A separate job validates the tag before either checkout. Tag inputs travel

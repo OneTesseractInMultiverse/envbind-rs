@@ -5,6 +5,11 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    # 0.8.3 uses a Rust 1.87 API; keep the Rust 1.85 contract (PR #30).
+    # Exact requirement: future fixed releases must remain eligible.
+    ignore:
+      - dependency-name: yoke-derive
+        versions: ["=0.8.3"]
 
   - package-ecosystem: github-actions
     directory: /
@@ -17,6 +22,10 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    # Keep this workspace aligned with the root compatibility constraint.
+    ignore:
+      - dependency-name: yoke-derive
+        versions: ["=0.8.3"]
 
   - package-ecosystem: pip
     directory: /.github/tests

@@ -16,6 +16,12 @@ published, and these changes are not present in the published 0.1.0 package.
 
 ### Changed
 
+Retained the yoke-derive 0.8.2 compatibility pin after reproducing 0.8.3's
+undeclared Rust 1.87 requirement. Dependabot now excludes exactly 0.8.3 in both
+Cargo workspaces while allowing later versions to be reviewed. Rust 1.85
+remains supported. See [PR #30](https://github.com/OneTesseractInMultiverse/envbind-rs/pull/30)
+and the [dependency review](docs/dependencies.md#yoke-derive-083-review-on-2026-09-27).
+
 Synchronized usage and API documentation, contributor checks, and release
 instructions. Documented exact length units, whitespace and optional-error
 behavior, current validation counts, and outstanding release controls. Routed

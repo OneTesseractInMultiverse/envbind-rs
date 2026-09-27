@@ -6,11 +6,10 @@ outside this repository. The expected values are recorded in
 not change remote settings. Review policy changes together with the actual
 settings and rerun the checks below.
 
-On 2026-09-27, the GitHub preflight passed, but authenticated crates.io settings
-showed **no Trusted Publisher configured** for envbind. The registry entry below
-is required configuration, not an active grant. Release approval remains
-blocked by [#14](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/14)
-until it is saved and verified. Recheck both systems before every release.
+On 2026-09-27, the GitHub preflight passed and the matching crates.io Trusted
+Publisher was saved and verified for envbind. The
+[registry verification record](#registry-verification-record) records its exact
+scope. Recheck both systems before every release; external settings can change.
 
 ## Approval and Ref Policy
 
@@ -67,6 +66,7 @@ and inspect every Trusted Publisher row. The intended GitHub publisher is:
 | Field | Exact value |
 | --- | --- |
 | Repository owner | `OneTesseractInMultiverse` |
+| Repository owner ID | `22035370` |
 | Repository name | `envbind-rs` |
 | Workflow filename | `publish.yml` |
 | Environment name | `crates-io` |
@@ -180,6 +180,38 @@ before the release-tag ruleset was enabled. The preflight failed while that
 ruleset was missing and passed after installation. A full API comparison
 confirmed that `Protect main` was unchanged. These tests verify the GitHub
 approval/ref gates; they do not exercise crates.io token exchange or publication.
+
+## Registry Verification Record
+
+The envbind Trusted Publisher was added and inspected on **2026-09-27** for
+[#14](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/14).
+Authenticated [crate settings](https://crates.io/crates/envbind/settings) showed
+one GitHub publisher with these values:
+
+| Field | Verified value |
+| --- | --- |
+| Repository owner | `OneTesseractInMultiverse` |
+| Repository owner ID | `22035370` |
+| Repository name | `envbind-rs` |
+| Workflow filename | `publish.yml` |
+| Environment name | `crates-io` |
+
+The workflow file was found by crates.io before submission. The saved row was
+inspected in crate settings; no additional publisher was present. The
+GitHub preflight passed against the configured reviewer, environment/ref, tag,
+and main protection policy. The harmless approval/ref fixture results above
+remain the evidence for those GitHub gates.
+
+The separate crates.io setting **Require trusted publishing for all new
+versions** remains disabled. Registering this publisher authorizes the scoped
+workflow; it does not disable publication through existing authorized API
+tokens. The GitHub approval and ref restrictions apply to the workflow path.
+
+This verifies configuration only. It does not prove a successful OIDC token
+exchange, archive upload, or registry publication. No publishing token was
+requested and no package was published during this verification. The final
+release still requires the checks and approval in the
+[release checklist](release-checklist.md).
 
 ## References
 

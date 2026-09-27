@@ -2,7 +2,8 @@
 
 use envbind::{Binder, BoolVar, Environment, ParameterSource, StringVar, U16Var, validators};
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+// Keep private deployment values out of automatically derived debug output.
+#[derive(Clone, PartialEq, Eq)]
 struct ServiceSettings {
     host: String,
     port: u16,
@@ -26,7 +27,8 @@ impl ParameterSource for ServiceSettings {
 }
 
 fn main() -> Result<(), envbind::BindError> {
-    let settings = ServiceSettings::from_process_environment()?;
-    println!("{settings:?}");
+    // Pass these typed values to application initialization, without logging them.
+    let _settings = ServiceSettings::from_process_environment()?;
+    println!("Service configuration loaded.");
     Ok(())
 }

@@ -16,7 +16,8 @@ use envbind::{
     ParameterSource, StringVar, validators,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+// This struct can contain credentials; deliberately omit derived Debug.
+#[derive(Clone, PartialEq, Eq)]
 struct ServiceSettings {
     host: String,
     port: i64,
@@ -51,6 +52,11 @@ impl ParameterSource for ServiceSettings {
 `ParameterSource` keeps construction explicit. Each line names the environment
 variable, the target type, the default, and the validation rule.
 
+The certificate is an ordinary string after binding. This settings type omits
+derived `Debug` to prevent accidental whole-object dumps. See
+[Sensitivity and Application Logging](#sensitivity-and-application-logging)
+before adding diagnostics for settings.
+
 ## Environment Sources
 
 Use process loading only at the application boundary. This call reads the
@@ -80,7 +86,7 @@ state and keeps each test self-contained.
 
 ```rust
 # use envbind::{BindError, Binder, Environment, MapEnvironment, ParameterSource, StringVar};
-# #[derive(Debug, Clone, PartialEq, Eq)]
+# #[derive(Clone, PartialEq, Eq)]
 # struct Settings { host: String }
 # impl ParameterSource for Settings {
 #     fn bind<E: Environment>(binder: &Binder<E>) -> Result<Self, BindError> {
@@ -141,8 +147,8 @@ are `.default(...)`, `.validate_default()`, `.allow_empty()`,
 `.sensitive(false)`, and `.validate(...)`.
 
 By default, missing values fail without a default. Empty strings act as missing.
-Values are sensitive, so custom validation details are hidden. Defaults skip
-validators unless `.validate_default()` is enabled.
+Binding diagnostics are sensitive, so custom validation details are hidden.
+Defaults skip validators unless `.validate_default()` is enabled.
 
 | Field | Target type | Main options |
 | --- | --- | --- |
@@ -425,8 +431,74 @@ assert_eq!(value, "prod");
 # Ok::<(), envbind::BindError>(())
 ```
 
-Validation messages must be safe to display. Values are sensitive by default,
-and `.sensitive(false)` shows custom validation details.
+Validation messages must be safe to display. Binding validation details are
+redacted by default; `.sensitive(false)` retains them.
+
+### Sensitivity and Application Logging
+
+`.sensitive(true)` is the default for each field. It replaces validator-provided
+details in `BindError::Validation` with a generic message, including the
+structured `message` field and display/debug formatting. `.sensitive(false)`
+retains those details; a validator that includes the input can therefore expose
+it. List item-parser errors use this same validation-error policy. This option
+does not enable extra parsing diagnostics or sanitize arbitrary application
+messages. Built-in parsing errors omit raw input, and variable names remain
+visible error context: never put credentials in a variable name.
+
+Adapter diagnostics have a separate guarantee: `EnvironmentError::Read`
+messages stay redacted in display, debug, alternate debug, and error-source
+formatting, regardless of `.sensitive(...)`. Direct access to the stored adapter
+message still returns the original diagnostic. `ValidationError` values used
+outside a field's binding path are also ordinary messages, not secret wrappers.
+
+After a successful bind, strings, numbers, lists, JSON values, and application
+settings are ordinary Rust values. The sensitivity flag does not travel with
+them. It cannot filter subsequent logging, derived `Debug`, serialization,
+assertion output, or direct field access. Cloning can create additional copies;
+applications own their lifetime and memory handling. Envbind does not provide
+automatic zeroization or secret-memory protection.
+
+For credential-bearing settings, omit `Debug` unless the application supplies
+an explicitly reviewed implementation. This example omits every field from
+debug output, including fields added later:
+
+```rust
+use std::fmt;
+use envbind::{Binder, MapEnvironment, StringVar};
+
+struct ClientSettings {
+    api_token: String,
+}
+
+impl fmt::Debug for ClientSettings {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.debug_struct("ClientSettings").finish_non_exhaustive()
+    }
+}
+
+let settings = ClientSettings {
+    api_token: Binder::new(MapEnvironment::from_pairs([
+        ("API_TOKEN", "synthetic-private-token-21"),
+    ])).bind(&StringVar::new("API_TOKEN"))?,
+};
+
+// Uses the application's reviewed formatter, which prints no field values.
+println!("{settings:?}");
+# let diagnostics = [format!("{settings:?}"), format!("{settings:#?}")];
+# assert_eq!(
+#     (settings.api_token.as_str(), diagnostics.iter().any(|text| text.contains("synthetic-private-token-21"))),
+#     ("synthetic-private-token-21", false),
+# );
+# Ok::<(), envbind::BindError>(())
+```
+
+The formatter above belongs to the application; Envbind does not generate it.
+Logging `settings.api_token` directly would still disclose the token. A fixed
+completion message, as used by the [service example](../examples/service_settings.rs),
+is sufficient when values are unnecessary. If operational values are useful,
+review and select each field explicitly, as in the
+[finite settings example](../examples/finite_settings.rs); that decision is
+independent of the field's sensitivity setting.
 
 ### URL Validation
 

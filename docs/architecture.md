@@ -78,9 +78,9 @@ input; typed defaults need attached validators for equivalent constraints.
 branches that map to stable codes. Display text can change for clarity, but
 error codes remain stable across compatible releases.
 
-Error display text does not include raw environment values. Environment
-variables often carry secrets. Parse failures name the variable and expected
-shape, not the raw value.
+Built-in parse failures name the variable and expected shape without raw input.
+Validation details are redacted by default; explicitly non-sensitive fields
+retain validator-provided messages, which must be safe to disclose.
 
 Field specs apply safe defaults. General raw values have a byte limit. JSON and
 base64 specs add type-specific limits. List specs limit item count before they
@@ -91,6 +91,12 @@ a generic message, and `Debug` replaces the diagnostic with `[redacted]` while
 preserving the variant name. Nested binding errors and `Error::source()` use
 the same redacted formatters, including alternate debug formatting. Direct
 access to the stored message remains possible and must be treated as sensitive.
+
+Sensitivity is a binding-diagnostic policy, not a property of the returned
+plain values. Application settings, logging, `Debug`, serialization, cloning,
+and memory handling remain the caller's responsibility. No automatic zeroization
+or secret-memory protection is provided. See the
+[application logging guidance](api-guide.md#sensitivity-and-application-logging).
 
 The error enums are non-exhaustive. Compatible releases can add failure modes
 without breaking downstream matches.

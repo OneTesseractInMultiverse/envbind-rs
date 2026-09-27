@@ -23,8 +23,16 @@ warnings denied, tests, doc tests, and docs.rs-style docs.
 
 ## Safe Defaults
 
-Envbind treats values as sensitive by default. Validation details stay hidden until a field is marked with
-`.sensitive(false)`. Parse errors name the variable and the expected type. They do not print the raw value.
+Envbind treats values as sensitive in binding diagnostics by default. Validation
+details stay hidden until a field is marked with `.sensitive(false)`. Built-in
+parse errors name the variable and the expected type without printing the input.
+
+Successful bindings return ordinary Rust values. Sensitivity does not redact
+their `Debug` output, serialization, or application logs, and it provides no
+automatic zeroization or secret-memory protection. Avoid deriving `Debug` for
+settings containing credentials; cloning and memory handling remain the caller's
+responsibility. See the [sensitivity boundary](docs/api-guide.md#sensitivity-and-application-logging)
+for an application-owned redacted `Debug` example.
 
 The crate limits input size before costly parsing. General raw values stop at 1 MiB. `JsonVar` stops at 64 KiB.
 `B64DecodedStringVar` stops at 1 MiB of decoded text. `ListVar` stops at 1024 items. Larger values require an explicit
@@ -72,7 +80,8 @@ use envbind::{
     ParameterSource, StringVar, validators,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+// Credentials are ordinary strings; omit automatically derived debug output.
+#[derive(Clone, PartialEq, Eq)]
 struct Settings {
     host: String,
     port: i64,
@@ -268,7 +277,11 @@ For exact enum labels, call `.case_sensitive()`. For extra labels, call
 Binding failures return `BindError`. Each variant maps to a stable
 `error_code()` string. Use it for logging, metrics, and tests.
 
-Display text does not include raw environment values. Callers often bind credentials or private deployment settings.
+Built-in parsing errors omit raw input. Sensitive validation failures replace
+validator-provided details with a generic message. With `.sensitive(false)`,
+custom details are retained in the structured error and its display/debug output,
+so validators must supply messages that are safe to disclose. Variable names
+are error context and must not contain secrets.
 
 Adapter read errors hide their diagnostic messages in both `Display` and `Debug`, including alternate debug
 formatting and errors returned from `main`. The `message` field of `EnvironmentError::Read` retains the original

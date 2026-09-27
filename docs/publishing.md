@@ -13,7 +13,8 @@ conditions without affecting normal builds.
 
 The package include list ships source, tests, examples, README, `/docs`,
 project policy files, `Makefile`, `SUPPORT.md`, and `LICENSE`. It leaves out build
-output and local machine files.
+output and local machine files. Maintainer commands involving `.github/` or
+`fuzz/` require the full Git checkout; those directories are not packaged.
 
 ## Release Flow
 
@@ -129,34 +130,33 @@ preflight and inspect the registry row using the
 [release control runbook](release-controls.md). That runbook also documents
 configuration recovery and safe approval-gate testing.
 
-## First Publish
+## Current Registry Status
 
-crates.io Trusted Publishing starts after the crate exists on crates.io. The
-first release uses a manual publish from a clean tree.
-
-```sh
-make verify
-make package-list
-make package
-make publish-dry-run
-cargo publish
-```
-
-After the first version appears on crates.io, configure Trusted Publishing in
-the crate settings. Later versions publish through the GitHub Actions
-`Publish` workflow. The `envbind` crate already exists; this bootstrap procedure
-is only for a new registry package, not routine releases.
+As checked on 2026-09-27, crates.io contains envbind 0.1.0. Version 0.2.0 is
+an unreleased candidate. The GitHub environment and ref protections are
+configured, but the registry has no Trusted Publisher yet. Resolve
+[#14](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/14) before
+using the protected publishing workflow. See the
+[readiness record](release-readiness.md) for the remaining release actions.
 
 ## Routine Release
 
-Update `version` in `Cargo.toml`, then update `CHANGELOG.md`. Confirm the
-`repository` and `documentation` metadata. Run `make verify`, inspect
-`make package-list`, run `make package`, and run `make publish-dry-run`.
+Update `version` in `Cargo.toml`, the local package entry in `fuzz/Cargo.lock`,
+and `CHANGELOG.md`. Confirm repository/documentation metadata, migration notes,
+installation guidance, and the supported-version policy. Keep registry
+availability claims conditional until publication succeeds.
 
-Complete the [external release control preflight](release-controls.md#preflight).
-Commit the release changes. Tag the commit with a version tag, such as
-`git tag v0.1.0`. Push the branch and tag, then create a GitHub release from
-the tag.
+Commit and review the release changes. On the selected clean commit, follow
+the [release checklist](release-checklist.md#before-tagging): generate and audit
+one lockfile, run the locked local gates, inspect package contents, confirm
+CI, and verify external release controls. Retain the exact commit and evidence.
+Any later source or metadata change requires validation of the new candidate.
+
+After review and merge, tag the validated release commit with the manifest's
+version, for example `git tag v0.2.0`. Push the tag only after the preflight
+passes and the registry publisher is verified. A manual `Publish` run with
+`publish` set to false validates the tag without uploading. Creating a
+published GitHub release from that tag starts the protected publication flow.
 
 The `Publish` workflow validates and audits the release, runs a locked publish
 dry run, and uploads its release bundle. The publishing job verifies the

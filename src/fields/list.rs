@@ -166,7 +166,9 @@ where
         self
     }
 
-    /// Keep surrounding whitespace on list items.
+    /// Keep surrounding whitespace when splitting list items.
+    ///
+    /// Item parsers may still trim it; boolean and enum item parsers do so.
     #[must_use]
     pub fn keep_whitespace(mut self) -> Self {
         self.strip = false;

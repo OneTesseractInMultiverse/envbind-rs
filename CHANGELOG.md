@@ -16,6 +16,11 @@ published, and these changes are not present in the published 0.1.0 package.
 
 ### Changed
 
+Synchronized usage and API documentation, contributor checks, and release
+instructions. Documented exact length units, whitespace and optional-error
+behavior, current validation counts, and outstanding release controls. Routed
+public support through issue forms and corrected links for packaged guides.
+
 Refreshed the fuzzing lockfile to cc 1.5.1, find-msvc-tools 0.1.14, and
 smallvec 1.16.2. Rechecked all dependency and tooling versions on 2026-09-26;
 documented the remaining MSRV and upstream compatibility constraints.

@@ -28,13 +28,12 @@ Map and custom adapters retain their own namespace rules. See the
 
 ## Getting Help
 
-Use GitHub Discussions for usage questions, design discussion, and examples:
+Use [GitHub Issues](https://github.com/OneTesseractInMultiverse/envbind-rs/issues)
+for public support. Search existing issues first, then choose the matching form:
 
-https://github.com/OneTesseractInMultiverse/envbind-rs/discussions
-
-Use GitHub Issues for reproducible bugs and focused feature requests:
-
-https://github.com/OneTesseractInMultiverse/envbind-rs/issues
+- [Usage question](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/new?template=question.yml): include the crate version, intended configuration, and a small example using synthetic values.
+- [Bug report](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/new?template=bug_report.yml): include a reproducible case and expected behavior.
+- [Feature request](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/new?template=feature_request.yml): explain the use case, proposal, and current alternatives.
 
 Report suspected vulnerabilities privately to security@subvertic.com. Do not
 open a public issue for a vulnerability.

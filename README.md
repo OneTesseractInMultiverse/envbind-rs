@@ -35,8 +35,9 @@ responsibility. See the [sensitivity boundary](docs/api-guide.md#sensitivity-and
 for an application-owned redacted `Debug` example.
 
 The crate limits input size before costly parsing. General raw values stop at 1 MiB. `JsonVar` stops at 64 KiB.
-`B64DecodedStringVar` stops at 1 MiB of decoded text. `ListVar` stops at 1024 items. Larger values require an explicit
-limit setter.
+`B64DecodedStringVar` stops at 1 MiB of decoded text. `ListVar` stops at 1024 items.
+String and JSON byte limits, the base64 decoded-byte limit, and the list item
+limit have explicit setters. Scalar and list raw-byte limits are fixed.
 
 | Type                  | Default limit                 | Override                  |
 |-----------------------|-------------------------------|---------------------------|
@@ -159,9 +160,13 @@ The public API centers on a small set of traits and field specs.
 | `ProcessEnvironment` | Reads from the process environment.                |
 | `MapEnvironment`     | Gives tests and examples in-memory values.         |
 | `Binder`             | Coordinates one binding spec with one environment. |
+| `Binding`            | Defines a typed binding, including custom specs.   |
+| `BindingExt`, `OptionalVar` | Wrap a spec to handle missing or empty values. |
 | `ParameterSource`    | Builds an application settings struct.             |
 | `BindError`          | Reports stable binding failures.                   |
-| `ValidationError`    | Carries safe validation text.                      |
+| `EnvironmentError`   | Reports adapter failures and invalid process names. |
+| `VariableName`       | Holds the variable name attached to a binding error. |
+| `ValidationError`    | Carries validator-provided text; binding sensitivity controls disclosure. |
 
 Field specs cover the common startup types: `StringVar`, `OptionalStringVar`,
 `BoolVar`, `IntVar`, `FloatVar`, `ListVar`, `JsonVar`, `EnumVar`,
@@ -177,7 +182,7 @@ adapters keep their own naming rules. See the
 Every field spec supports `.default(...)`, `.validate_default()`, `.allow_empty()`,
 `.sensitive(false)`, and `.validate(...)`. `BindingExt::optional()` wraps any binding spec and converts
 missing or empty errors to `None`. Successful defaults return `Some`; adapter,
-parsing, and validation errors remain errors.
+size-limit, parsing, and validation errors remain errors.
 
 ## Field Behavior
 
@@ -191,7 +196,7 @@ for optional fields, empty values, and container defaults.
 ```rust
 # use envbind::{Binder, MapEnvironment, StringVar};
 let host = Binder::new(MapEnvironment::from_pairs([("HOST", "localhost")]))
-.bind( & StringVar::new("HOST")) ?;
+    .bind(&StringVar::new("HOST"))?;
 assert_eq!(host, "localhost");
 # Ok::<(), envbind::BindError>(())
 ```
@@ -200,7 +205,7 @@ assert_eq!(host, "localhost");
 
 ```rust
 # use envbind::{Binder, MapEnvironment, OptionalStringVar};
-let token = Binder::new(MapEnvironment::new()).bind( & OptionalStringVar::new("TOKEN")) ?;
+let token = Binder::new(MapEnvironment::new()).bind(&OptionalStringVar::new("TOKEN"))?;
 assert_eq!(token, None);
 # Ok::<(), envbind::BindError>(())
 ```
@@ -211,7 +216,7 @@ assert_eq!(token, None);
 ```rust
 # use envbind::{Binder, BoolVar, MapEnvironment};
 let enabled = Binder::new(MapEnvironment::from_pairs([("TRACE", "yes")]))
-.bind( & BoolVar::new("TRACE")) ?;
+    .bind(&BoolVar::new("TRACE"))?;
 assert!(enabled);
 # Ok::<(), envbind::BindError>(())
 ```
@@ -221,7 +226,7 @@ assert!(enabled);
 ```rust
 # use envbind::{Binder, MapEnvironment, U16Var, validators};
 let port = Binder::new(MapEnvironment::from_pairs([("PORT", "8080")]))
-.bind( & U16Var::new("PORT").validate(validators::u16_in_range(1, 65_535))) ?;
+    .bind(&U16Var::new("PORT").validate(validators::u16_in_range(1, 65_535)))?;
 assert_eq!(port, 8080);
 # Ok::<(), envbind::BindError>(())
 ```
@@ -300,8 +305,8 @@ diagnostic for explicit structured handling; treat that field as potentially sen
 ```rust
 # use envbind::{Binder, MapEnvironment, U16Var};
 let error_code = Binder::new(MapEnvironment::from_pairs([("PORT", "abc")]))
-.bind( & U16Var::new("PORT"))
-.map_err( | error| error.error_code());
+    .bind(&U16Var::new("PORT"))
+    .map_err(|error| error.error_code());
 
 assert_eq!(error_code, Err("parse_variable"));
 ```
@@ -324,8 +329,14 @@ with [API Guide](docs/api-guide.md) for usage. Read [Architecture](docs/architec
 Reference files:
 
 - [Testing Guide](docs/testing-guide.md)
+- [Binding Contract Matrix](docs/binding-contract-matrix.md)
+- [Property Tests and Bounded Fuzzing](docs/fuzzing.md)
+- [Dependency Maintenance](docs/dependencies.md)
+- [Migrating to 0.2](docs/migrating-to-0.2.md)
+- [Release Readiness](docs/release-readiness.md)
 - [Publishing](docs/publishing.md)
 - [Release Checklist](docs/release-checklist.md)
+- [Release Controls](docs/release-controls.md)
 - [Open Source Practices](docs/open-source.md)
 - [Support](SUPPORT.md)
 - [Contributing](CONTRIBUTING.md)
@@ -359,16 +370,17 @@ snippets directly from this README and every guide under `docs/`. See the
 [documentation test gate](docs/testing-guide.md#documentation-tests) for snippet
 setup and execution rules.
 
+Packaging and publishing dry runs require a clean, committed checkout. Use the
+[contribution checklist](CONTRIBUTING.md#pull-request-checklist) for changes and
+the release checklist below for locked release validation.
+
 ## Publishing Readiness
 
-Run these commands before a release:
-
-```sh
-make verify
-make package-list
-make package
-make publish-dry-run
-```
+Follow the [release checklist](docs/release-checklist.md) to audit one dependency
+resolution and run the checks, package verification, and publishing dry run with
+that lockfile. Record the exact commit and validation results. The
+[0.2.0 readiness record](docs/release-readiness.md) tracks support limits and
+remaining release actions, including the missing registry Trusted Publisher.
 
 The package includes source, tests, examples, docs, and the MIT license. It excludes build output and machine-specific
 files.

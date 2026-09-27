@@ -22,7 +22,7 @@ cargo +1.85.0 test --test properties
 make verify
 ```
 
-The sole new development dependency is
+The property-testing development dependency is
 [proptest 1.11](https://docs.rs/proptest/1.11.0/proptest/), licensed MIT or
 Apache-2.0 and supporting Rust 1.85. Only its `std` feature is enabled.
 Strategies and shrinking justify the additional test dependency; it is not a
@@ -32,7 +32,7 @@ rerun these properties on every supported CI platform.
 ## Shared Properties and Bounds
 
 [robustness.rs](../tests/support/robustness.rs) supplies invariant checks to both
-the ordinary properties and the [fuzz targets](../fuzz/fuzz_targets). A panic
+the ordinary properties and the [fuzz targets](https://github.com/OneTesseractInMultiverse/envbind-rs/tree/main/fuzz/fuzz_targets). A panic
 from a built-in parser or validator fails the test/run normally; it is not
 caught and converted into a successful outcome.
 
@@ -65,7 +65,10 @@ remain covered by the separate subprocess tests.
 
 ## Isolated Fuzz Workspace
 
-The non-publishable [fuzz manifest](../fuzz/Cargo.toml) has its own workspace and
+Run these commands from the full Git checkout. The published crate excludes
+`fuzz/` and cannot run this maintainer harness by itself.
+
+The non-publishable [fuzz manifest](https://github.com/OneTesseractInMultiverse/envbind-rs/blob/main/fuzz/Cargo.toml) has its own workspace and
 committed lockfile. It uses `libfuzzer-sys` 0.4.13 (MIT/Apache-2.0 with NCSA
 runtime code) and reuses the library's base64/JSON dependencies for round-trip
 oracles. None of the fuzz tooling enters the root package or normal stable
@@ -91,7 +94,7 @@ Decoded invalid UTF-8 is still tested through valid base64 text.
 
 ## Seed Corpus
 
-The 45 reviewed files under [fuzz/corpus](../fuzz/corpus) contain only synthetic
+The 45 reviewed files under [fuzz/corpus](https://github.com/OneTesseractInMultiverse/envbind-rs/tree/main/fuzz/corpus) contain only synthetic
 data. They include:
 
 - Valid multibyte JSON, malformed objects, trailing data, a byte-limit fixture,
@@ -117,7 +120,7 @@ environment dump, access token, credential, production URL, or customer payload.
 
 ## Budgets, CI, and Reproduction
 
-[run.sh](../fuzz/run.sh) runs all five targets sequentially and fails immediately
+[run.sh](https://github.com/OneTesseractInMultiverse/envbind-rs/blob/main/fuzz/run.sh) runs all five targets sequentially and fails immediately
 if a build, invariant, sanitizer, timeout, memory limit, or lock check fails.
 It validates its duration/seed arguments and preserves nonzero exits through
 the log pipeline. Each target receives:
@@ -219,3 +222,29 @@ All 4,024,768 executions completed without invariant, sanitizer, timeout, or
 memory-limit failures. The source patch, lock, and per-target logs were retained
 with the local run metadata. The same smoke-test limitations described above
 apply; these execution counts do not establish exhaustive input coverage.
+
+### Release Candidate Run on 2026-09-27
+
+A fresh full run on clean commit
+[`d95f57adc71db1122c4b2b63f8231239817814ba`](https://github.com/OneTesseractInMultiverse/envbind-rs/commit/d95f57adc71db1122c4b2b63f8231239817814ba)
+used `aarch64-apple-darwin`, `nightly-2026-09-24`, cargo-fuzz 0.13.2, the
+committed fuzz lock, AddressSanitizer, seed `20260927`, and fresh mutation
+directories. Each target had a 30-second budget and reported 31 seconds elapsed.
+The 4,096-byte input, five-second timeout, 1,024-MiB RSS, and 16-MiB allocation
+limits described above were unchanged.
+
+| Target | Executions | Peak RSS (MiB) | Result |
+| --- | ---: | ---: | --- |
+| JSON | 1,150,880 | 535 | Passed |
+| Base64 | 1,852,749 | 554 | Passed |
+| List | 648,796 | 425 | Passed |
+| URL | 814,536 | 540 | Passed |
+| Scalars | 457,792 | 488 | Passed |
+
+All 4,924,753 executions passed without invariant, sanitizer, timeout, or
+memory-limit failures. The source patch was empty and the fuzz lock remained
+unchanged. Source identity, tools, bounds, lock, and logs were retained with
+[#23's candidate evidence](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/23).
+This record applies to that exact commit. Later documentation edits do not
+change its source identity; subsequent candidates need their own affected
+checks and final release validation. The smoke-test limitations above apply.

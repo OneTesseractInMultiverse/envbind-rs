@@ -19,7 +19,7 @@
 //! - [`Binder`] coordinates one [`Binding`] against an environment source.
 //! - [`BindingExt::optional`] turns any binding spec into an optional binding.
 //! - [`ParameterSource`] lets application settings structs compose typed values.
-//! - [`StringVar`], [`IntVar`], [`FloatVar`], [`BoolVar`], [`ListVar`],
+//! - [`StringVar`], [`OptionalStringVar`], [`IntVar`], [`FloatVar`], [`BoolVar`], [`ListVar`],
 //!   [`JsonVar`], [`EnumVar`], [`B64DecodedStringVar`], and [`U16Var`] parse
 //!   supported field types.
 //! - [`BindError`] reports binding failures with stable codes and sensitive defaults.
@@ -30,8 +30,9 @@
 //! automatic zeroization or secret-memory protection. See the
 //! [sensitivity boundary](fields#sensitivity-and-returned-values).
 //!
-//! Raw inputs have defensive size limits, and larger JSON, base64, string, or
-//! list values must opt in through field-specific limit setters.
+//! Raw inputs have defensive size limits. String and JSON byte limits, the
+//! base64 decoded-byte limit, and the list item limit have explicit setters.
+//! Scalar and list raw-byte limits are fixed at one MiB.
 //! Typed defaults skip validation unless `.validate_default()` is enabled on
 //! the field. See the [fallback validation policy](fields) for details.
 //!

@@ -32,16 +32,17 @@ dates are recorded in [dependency maintenance](dependencies.md).
 
 | Review area | Implementation and evidence |
 | --- | --- |
-| Adapter-message redaction and safe examples | #8 and #21; display, debug, alternate, nested, source-chain, and process-exit regression cases; compiled redacted-settings example. |
-| URL syntax and schemes | #9; proper parsing, allowlist enforcement, malformed authorities/ports, and strict raw-input rejection. Migration is required for previously accepted ambiguous forms. |
-| Release input and artifact integrity | #10 and #11; hostile tag tests, validated commit/lock retention, checksum verification, and reproducible package comparison before authentication. |
-| Release approval and registry identity | #14; GitHub reviewer/ref/tag controls and a separate crates.io Trusted Publisher inspection. This remains a release blocker until the registry row is verified. |
-| Runtime adapters and contracts | #15, #16, and #17; invalid process names, native subprocess environments, all ten field types, optional propagation, and defensive-limit boundaries. |
-| Default and floating-point policy | #12 and #19; compatible opt-in validation with deterministic regressions and migration guidance. |
-| Robustness and documentation | #18 and #20; deterministic properties, five bounded sanitizer fuzz targets, and compiled README/guide examples. |
-| Dependency maintenance and detection | #13 and #22; reviewed dependency/tool versions, both fresh root graphs and committed fuzz graph, enabled alerts/security updates, daily audits, and maintainer triage. |
+| Adapter-message redaction and safe examples | [#8](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/8) and [#21](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/21); display, debug, alternate, nested, source-chain, and process-exit regression cases; compiled redacted-settings example. |
+| URL syntax and schemes | [#9](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/9); proper parsing, allowlist enforcement, malformed authorities/ports, and strict raw-input rejection. Migration is required for previously accepted ambiguous forms. |
+| Release input and artifact integrity | [#10](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/10) and [#11](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/11); hostile tag tests, validated commit/lock retention, checksum verification, and reproducible package comparison before authentication. |
+| Release approval and registry identity | [#14](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/14); GitHub reviewer/ref/tag controls and a separate crates.io Trusted Publisher inspection. This remains a release blocker until the registry row is verified. |
+| Runtime adapters and contracts | [#15](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/15), [#16](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/16), and [#17](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/17); invalid process names, native subprocess environments, all ten field types, optional propagation, and defensive-limit boundaries. |
+| Default and floating-point policy | [#12](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/12) and [#19](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/19); compatible opt-in validation with deterministic regressions and migration guidance. |
+| Robustness and documentation | [#18](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/18) and [#20](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/20); deterministic properties, five bounded sanitizer fuzz targets, and compiled README/guide examples. |
+| Dependency maintenance and detection | [#13](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/13) and [#22](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/22); reviewed dependency/tool versions, both fresh root graphs and committed fuzz graph, enabled alerts/security updates, daily audits, and maintainer triage. |
 
-The checklist and commit-specific validation links live in #23. Evidence must
+The checklist and commit-specific validation links live in
+[#23](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/23). Evidence must
 identify a full source commit, toolchain, dependency lock, and run; a green
 check for an earlier patch is not final validation of the combined candidate.
 Retain package and audit hashes with the release bundle. Changing the source,
@@ -49,23 +50,11 @@ lockfile, or toolchain requires rerunning the affected gates before release.
 
 ## Final Candidate Gates
 
-Run these from a clean checkout of the selected candidate. Generate and audit
-the release resolution first, then use `--locked` throughout:
-
-```sh
-cargo generate-lockfile
-cargo audit --deny warnings --json > /tmp/envbind-release-audit.json
-make verify CARGO='cargo --locked'
-make package-list CARGO='cargo --locked'
-make package CARGO='cargo --locked'
-cargo publish --dry-run --locked
-python3 -B .github/scripts/check_release_controls.py
-```
-
-Use the reviewed stable compiler and cargo-audit version from
-[dependency maintenance](dependencies.md). The lockfile and report above must
-be retained with the candidate evidence, not overwritten by a second
-resolution before packaging. Also run:
+Use the [locked local gate sequence](release-checklist.md#before-tagging) from
+a clean, committed checkout of the selected candidate. Generate and audit the
+release resolution first, then retain that lockfile and report with the
+candidate evidence. Use the reviewed stable compiler and cargo-audit version
+from [dependency maintenance](dependencies.md). Also run:
 
 - The full CI Rust matrix, including Rust 1.85, all supported native platforms,
   the required aggregate check, and every documentation example.
@@ -91,7 +80,7 @@ checks; do not publish a test version for validation.
 
 ## Remaining Release Actions
 
-The maintainer must verify the Trusted Publisher required by #14 before a
+The maintainer must verify the Trusted Publisher required by [#14](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/14) before a
 release can be approved. It must name `OneTesseractInMultiverse/envbind-rs`,
 `publish.yml`, and the `crates-io` environment with no unrestricted extra entry.
 

@@ -13,7 +13,7 @@ pub trait Binding<T> {
 pub trait BindingExt: Sized {
     /// Convert missing-variable or empty-variable errors to `None`.
     ///
-    /// Adapter, parsing, and validation errors still return `Err`.
+    /// Adapter, size-limit, parsing, and validation errors still return `Err`.
     /// Configured defaults are resolved by the wrapped spec first. Successful
     /// defaults return `Some`; failures from `.validate_default()` stay errors.
     #[must_use]

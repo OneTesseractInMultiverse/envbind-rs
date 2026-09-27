@@ -96,8 +96,10 @@ CI checks two fresh dependency resolutions:
 
 The security job audits both resolutions. Release validation retains Cargo's
 MSRV-aware default resolution and audits that exact lockfile before packaging.
-Both graphs reviewed on 2026-09-22 contained 46 registry packages and passed cargo-audit 0.22.2
-without vulnerability findings or maintenance warnings.
+The earlier graphs reviewed on 2026-09-22 contained 46 registry packages and
+passed cargo-audit 0.22.2 without vulnerability findings or maintenance warnings.
+The [2026-09-26 review](#review-on-2026-09-26) supersedes that package inventory
+and includes the subsequently added property and fuzz tooling.
 
 The stable dependency graph is now exercised by native Linux, macOS, and
 Windows jobs. The required `Rust stable` aggregate check succeeds only after

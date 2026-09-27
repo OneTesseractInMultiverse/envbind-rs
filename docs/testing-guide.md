@@ -59,10 +59,10 @@ cargo test --doc documentation::
 cargo test --doc -- --list
 ```
 
-The gate currently discovers 31 snippets: 5 API examples and 26 from
-Markdown (9 README, 15 API guide, 1 architecture, and 1 testing guide). Two
-process-loading examples compile without running; the other 29 compile and
-execute. No Rust examples are ignored. Counts can grow with the documentation;
+The gate currently discovers 33 snippets: 5 API examples and 28 from
+Markdown (9 README, 15 API guide, 1 architecture, 1 testing guide, and 2 migration
+guide examples). Two process-loading examples compile without running; the
+other 31 compile and execute. No Rust examples are ignored. Counts can grow with the documentation;
 the other registered guides currently contain only non-Rust code blocks.
 
 The credential-settings example checks normal and alternate `Debug` output
@@ -163,9 +163,10 @@ audit. See the [audit runbook](dependencies.md#ongoing-advisory-checks).
 
 ## Release Workflow Tests
 
-The separate `Release workflow tests` CI job checks the scripts and security
-controls in `.github/workflows/publish.yml`. Run it locally with Python 3.11
-or newer, Git, and an installed stable Rust toolchain:
+The separate `Release workflow tests` CI job runs 77 regression tests covering
+the publishing workflow, CI matrix, documentation inventory, security audits,
+fuzz runner, and release-control preflight. Run it locally from the full Git
+checkout with Python 3.11 or newer, Git, and an installed stable Rust toolchain:
 
 ```sh
 python3 -m venv /tmp/envbind-workflow-tests
@@ -195,6 +196,12 @@ using the token-free fixture in the [release control runbook](release-controls.m
 PyYAML 6.0.3 is a pinned, MIT-licensed test dependency used to read the actual
 workflow YAML. It has no runtime dependencies and is excluded from the Rust
 crate package. Maintain its pin with the other CI tooling dependencies.
+
+Also run `actionlint` from the repository root when changing workflow YAML.
+Install ShellCheck alongside it to include shell diagnostics. This is a
+separate local lint check; `make verify` runs the Rust gates only. The published
+crate excludes `.github/` and `fuzz/`, so workflow and fuzz commands require the
+full repository checkout.
 
 ## Coverage Expectations
 

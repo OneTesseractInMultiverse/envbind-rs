@@ -1,0 +1,30 @@
+name: Usage Question
+description: Ask about binding configuration, validators, or documented behavior.
+title: "Question: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Search existing issues first. Use synthetic configuration values; do not include credentials or environment dumps.
+        Report suspected vulnerabilities privately to security@subvertic.com.
+  - type: input
+    id: version
+    attributes:
+      label: Crate version or commit
+      description: Include the exact version or source commit you are using.
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Question
+      description: Explain what you want to configure and which documentation you have tried.
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Minimal example
+      description: Show a small example with synthetic values, the current result, and the behavior you expected.
+    validations:
+      required: false

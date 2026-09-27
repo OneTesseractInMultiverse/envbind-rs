@@ -20,9 +20,10 @@ Review focuses on correctness, clear boundaries, tests, and documentation. A
 change that mixes environment reads with parsing needs revision. A change that
 prints raw values needs revision.
 
-GitHub issue templates collect reproducible bug reports and focused feature
-requests. The pull request template records validation commands and release
-notes work. `CODEOWNERS` marks the default maintainer for review routing.
+GitHub issue templates collect reproducible bug reports, focused feature
+requests, and usage questions. The pull request template records validation
+commands and release notes work. `CODEOWNERS` marks the default maintainer for
+review routing.
 
 ## Dependency Policy
 

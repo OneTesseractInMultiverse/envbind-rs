@@ -4,9 +4,22 @@ User-facing changes are tracked in this file.
 
 The project uses semantic versioning.
 
-## Unreleased
+## 0.2.0 - Unreleased
+
+The next release uses a new pre-1.0 minor line because URL validation and
+process-variable name handling deliberately reject configurations that could
+previously succeed. Existing defaults and floating-point parsing stay
+permissive; their stronger validation policies remain opt-in. Rust 1.85 is
+still supported. See the [migration guide](docs/migrating-to-0.2.md) and
+[release-readiness record](docs/release-readiness.md). This version has not been
+published, and these changes are not present in the published 0.1.0 package.
 
 ### Changed
+
+Synchronized usage and API documentation, contributor checks, and release
+instructions. Documented exact length units, whitespace and optional-error
+behavior, current validation counts, and outstanding release controls. Routed
+public support through issue forms and corrected links for packaged guides.
 
 Refreshed the fuzzing lockfile to cc 1.5.1, find-msvc-tools 0.1.14, and
 smallvec 1.16.2. Rechecked all dependency and tooling versions on 2026-09-26;
@@ -24,6 +37,13 @@ and remaining constraints. Fixes
 [#13](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/13).
 
 ### Added
+
+Enabled repository dependency alerts and automatic security-update pull
+requests. Added daily and manual audit-only checks of both fresh root
+resolutions and the committed fuzz lock, with read-only permissions, bounded
+execution, retained reports, and a documented maintainer response policy.
+CI and release audits now reject all warnings as well as vulnerabilities.
+Fixes [#22](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/22).
 
 Included README and guide Rust snippets directly in the standard documentation
 test gate. Fixed standalone setup for the README's process-loading example and
@@ -117,7 +137,10 @@ when the scheme is optional. Raw whitespace, control characters, backslashes,
 and relative path references are rejected. The original bound string is
 preserved; see the [URL validation guide](docs/api-guide.md#url-validation).
 
-## 0.1.1 - 2026-05-28
+## 0.1.1 - Unpublished
+
+Prepared on 2026-05-28 but never published to crates.io. Its metadata correction
+is included in 0.2.0.
 
 ### Fixed
 

@@ -2,9 +2,15 @@
 
 GitHub environment rules, tag rulesets, and crates.io Trusted Publishers live
 outside this repository. The expected values are recorded in
-[release-policy.json](../.github/release-policy.json). Changing that file does
+[release-policy.json](https://github.com/OneTesseractInMultiverse/envbind-rs/blob/main/.github/release-policy.json). Changing that file does
 not change remote settings. Review policy changes together with the actual
 settings and rerun the checks below.
+
+On 2026-09-27, the GitHub preflight passed, but authenticated crates.io settings
+showed **no Trusted Publisher configured** for envbind. The registry entry below
+is required configuration, not an active grant. Release approval remains
+blocked by [#14](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/14)
+until it is saved and verified. Recheck both systems before every release.
 
 ## Approval and Ref Policy
 
@@ -37,7 +43,7 @@ remain separate and must not be relaxed to release a crate.
 
 ## Preflight
 
-From a reviewed checkout with Python 3 and an authenticated GitHub CLI that
+From a reviewed full Git checkout with Python 3 and an authenticated GitHub CLI that
 can read repository settings, run:
 
 ```sh
@@ -104,7 +110,7 @@ changes and use the preflight to detect drift.
 
 ## Token-Free Gate Verification
 
-Use [.github/fixtures/release-gate.yml](../.github/fixtures/release-gate.yml) to
+Use [.github/fixtures/release-gate.yml](https://github.com/OneTesseractInMultiverse/envbind-rs/blob/main/.github/fixtures/release-gate.yml) to
 exercise the real `crates-io` environment. It has empty token permissions,
 no checkout, no third-party actions, no secret references, and no publishing
 commands. Its only step rejects unexpected credential access and prints the

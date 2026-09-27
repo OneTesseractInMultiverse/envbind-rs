@@ -8,8 +8,8 @@ pub(super) const DEFAULT_MAX_RAW_BYTES: usize = 1024 * 1024;
 
 /// Resolve raw text for field specs that use default-on-missing semantics.
 ///
-/// Missing values return `Ok(None)`. Explicit empty strings return `Ok(None)`
-/// with a default. Otherwise they fail without `allow_empty()`.
+/// Missing values return `Ok(None)`. Unless `allow_empty()` is enabled,
+/// explicit empty strings return `Ok(None)` with a default and fail without one.
 pub(super) fn resolve_raw<E: Environment>(
     environment: &E,
     name: &str,

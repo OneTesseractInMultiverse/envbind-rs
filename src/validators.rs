@@ -15,7 +15,9 @@ pub type BoxedStringValidator =
 pub type BoxedValueValidator<T> =
     Box<dyn Fn(T) -> Result<(), ValidationError> + Send + Sync + 'static>;
 
-/// Require a minimum string length.
+/// Require a minimum string length measured in Unicode scalar values.
+///
+/// Uses `str::chars()`, not UTF-8 bytes or grapheme clusters.
 #[must_use = "pass validators to a variable spec"]
 pub fn min_length(
     minimum: usize,
@@ -31,7 +33,9 @@ pub fn min_length(
     }
 }
 
-/// Require a maximum string length.
+/// Require a maximum string length measured in Unicode scalar values.
+///
+/// Uses `str::chars()`, not UTF-8 bytes or grapheme clusters.
 #[must_use = "pass validators to a variable spec"]
 pub fn max_length(
     maximum: usize,

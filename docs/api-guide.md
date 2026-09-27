@@ -146,9 +146,12 @@ empty-string handling, sensitivity control, and validation. The shared methods
 are `.default(...)`, `.validate_default()`, `.allow_empty()`,
 `.sensitive(false)`, and `.validate(...)`.
 
-By default, missing values fail without a default. Empty strings act as missing.
-Binding diagnostics are sensitive, so custom validation details are hidden.
-Defaults skip validators unless `.validate_default()` is enabled.
+Required fields without a default return `missing_variable` for absent input
+and `empty_variable` for explicit empty input. `OptionalStringVar` returns
+`None` in both cases. A configured default handles either case unless
+`.allow_empty()` makes empty input reach the parser. Binding diagnostics are
+sensitive, so custom validation details are hidden. Defaults skip validators
+unless `.validate_default()` is enabled.
 
 | Field | Target type | Main options |
 | --- | --- | --- |
@@ -171,8 +174,9 @@ Use `allow_empty()` for empty text that must parse as a real value. Use
 
 `BindingExt::optional()` wraps any binding spec and returns `None` for missing
 or empty errors. The wrapped spec resolves defaults first. Successful defaults
-return `Some`, and parsing or validation failures remain errors. This is useful
-for optional ports, optional JSON values, and optional decoded strings.
+return `Some`; adapter, size-limit, parsing, and validation failures remain
+errors. This is useful for optional ports, optional JSON values, and optional
+decoded strings.
 
 ## Validating Defaults
 
@@ -230,14 +234,15 @@ that must also hold on these typed values.
 ## Size Limits
 
 Size limits protect startup from accidental large values. `StringVar` and
-`OptionalStringVar` stop at 1 MiB of raw text. `BoolVar`, `IntVar`, `FloatVar`,
-`U16Var`, and `EnumVar` use the same 1 MiB raw-text limit without a per-field
-override.
+`OptionalStringVar` stop at 1 MiB of raw text; `.max_bytes(...)` changes their
+limit. `BoolVar`, `IntVar`, `FloatVar`, `U16Var`, and `EnumVar` use the same
+1 MiB raw-text limit without a per-field override.
 
 `JsonVar` stops at 64 KiB of raw JSON, and `.max_bytes(...)` changes that
 limit. `B64DecodedStringVar` stops at 1 MiB of decoded text, and
 `.max_decoded_bytes(...)` changes that limit. `ListVar` stops at 1 MiB of raw
-text and 1024 parsed items. `.max_items(...)` changes the item limit.
+text and 1024 parsed items. `.max_items(...)` changes the item limit; the raw
+byte limit remains fixed.
 
 These built-in limits protect parsing environment input. None of them apply to
 typed defaults, even with `.validate_default()`: this includes raw byte limits,
@@ -281,8 +286,9 @@ assert_eq!(port, 8080);
 ```
 
 Lists split on commas by default. Items are trimmed by default. Use
-`.delimiter(...)` for another separator and `.keep_whitespace()` for exact
-items.
+`.delimiter(...)` for another separator and `.keep_whitespace()` to disable
+trimming at the split stage. String and custom parsers then receive each item
+unchanged; boolean and enum item parsers still apply their own trimming.
 
 ```rust
 # use envbind::{Binder, ListVar, MapEnvironment};
@@ -415,9 +421,16 @@ Use validators for startup checks. Keep domain rules in domain code.
 Configuration validation protects the boundary between raw text and typed
 settings.
 
-Helpers include `is_finite`, `all_finite`, `in_range`, `min_value`, `max_value`,
-`one_of`, `one_of_values`, `min_length`, `max_length`, `matches_pattern`, `is_url`,
-`is_url_with_options`, `is_email`, `all_of`, and `all_of_str`.
+Helpers include `is_finite`, `all_finite`, `in_range`, `u16_in_range`, `min_value`,
+`max_value`, `one_of`, `one_of_values`, `min_length`, `max_length`,
+`matches_pattern`, `is_url`, `is_url_with_options`, `is_email`, `all_of`, and
+`all_of_str`.
+
+`min_length` and `max_length` count Unicode scalar values (`str::chars()`), not
+UTF-8 bytes or user-perceived grapheme clusters. A combining mark counts
+separately from its base character. In contrast, `.max_bytes(...)` limits the
+raw UTF-8 byte length before parsing. Use a custom typed validator when a
+different length unit or a limit on typed defaults is required.
 
 ```rust
 # use envbind::{Binder, MapEnvironment, StringVar, validators};

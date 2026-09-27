@@ -153,6 +153,14 @@ The Python workflow suite also checks platform coverage, the MSRV check name,
 and the aggregate gate's behavior for success and unsuccessful results. These
 local checks execute the actual gate script; they do not dispatch workflows.
 
+Scheduled and explicit manual audit-only runs skip the build matrix and its
+aggregate gate. They execute the same `Security audit` job used by full CI.
+Workflow regression tests cover trigger routing, concurrency isolation,
+read-only permissions, time limits, fresh resolutions, warning policy, and
+failure propagation through the report pipeline. Synthetic command failures
+verify that each graph can fail the job and that resolution failures stop the
+audit. See the [audit runbook](dependencies.md#ongoing-advisory-checks).
+
 ## Release Workflow Tests
 
 The separate `Release workflow tests` CI job checks the scripts and security

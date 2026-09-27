@@ -46,7 +46,9 @@ class CiWorkflowTests(unittest.TestCase):
         gate = self.jobs["rust-stable"]
         self.assertEqual(
             (gate["name"], gate["needs"], gate["if"], gate.get("continue-on-error", False)),
-            ("Rust stable", "rust", "${{ always() }}", False),
+            ("Rust stable", "rust",
+             "${{ always() && github.event_name != 'schedule' && "
+             "!(github.event_name == 'workflow_dispatch' && inputs.security_only) }}", False),
         )
 
     def test_gate_accepts_successful_matrix(self):

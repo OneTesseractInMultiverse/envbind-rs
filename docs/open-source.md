@@ -38,5 +38,9 @@ dependency advisory audit so known vulnerable releases fail the gate.
 Do not log raw environment values by default. Users can store credentials or
 private deployment state in environment variables.
 
-Error messages name the variable and failure class. They do not echo the raw
-value. Validation details stay hidden for sensitive fields.
+Built-in parse errors name the variable and failure class without echoing input.
+Validation details stay hidden for sensitive fields; explicitly non-sensitive
+fields require messages that are safe to disclose. Successfully bound values
+remain ordinary Rust values, so applications must review their own logging,
+debug output, serialization, and memory handling. See the
+[sensitivity boundary](api-guide.md#sensitivity-and-application-logging).

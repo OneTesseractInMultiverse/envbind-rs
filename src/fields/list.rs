@@ -190,7 +190,11 @@ where
         self
     }
 
-    /// Mark the value as safe to include in validation details.
+    /// Control redaction of validator-provided error details.
+    ///
+    /// Defaults to `true`; `false` retains those details in binding errors.
+    /// This does not redact returned values or application logs. See the
+    /// [sensitivity boundary](crate::fields#sensitivity-and-returned-values).
     #[must_use]
     pub fn sensitive(mut self, value: bool) -> Self {
         self.sensitive = value;

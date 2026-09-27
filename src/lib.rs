@@ -22,11 +22,16 @@
 //! - [`StringVar`], [`IntVar`], [`FloatVar`], [`BoolVar`], [`ListVar`],
 //!   [`JsonVar`], [`EnumVar`], [`B64DecodedStringVar`], and [`U16Var`] parse
 //!   supported field types.
-//! - [`BindError`] reports binding failures without exposing raw values.
+//! - [`BindError`] reports binding failures with stable codes and sensitive defaults.
 //!
-//! Values are treated as sensitive by default. Raw inputs have defensive size
-//! limits, and larger JSON, base64, string, or list values must opt in through
-//! field-specific limit setters.
+//! Binding diagnostics are treated as sensitive by default. Successful bindings
+//! return ordinary Rust values: application logging, `Debug`, serialization,
+//! cloning, and memory handling remain the caller's responsibility. There is no
+//! automatic zeroization or secret-memory protection. See the
+//! [sensitivity boundary](fields#sensitivity-and-returned-values).
+//!
+//! Raw inputs have defensive size limits, and larger JSON, base64, string, or
+//! list values must opt in through field-specific limit setters.
 //! Typed defaults skip validation unless `.validate_default()` is enabled on
 //! the field. See the [fallback validation policy](fields) for details.
 //!
@@ -44,7 +49,7 @@
 //!     validators,
 //! };
 //!
-//! #[derive(Debug, Clone, PartialEq, Eq)]
+//! #[derive(Clone, PartialEq, Eq)]
 //! struct ServiceSettings {
 //!     host: String,
 //!     port: u16,

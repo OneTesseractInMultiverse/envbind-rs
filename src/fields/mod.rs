@@ -1,5 +1,22 @@
 //! Typed variable specs used by settings objects.
 //!
+//! # Sensitivity and returned values
+//!
+//! Every field defaults to `.sensitive(true)`, which replaces validator-provided
+//! details in [`crate::BindError::Validation`] with a generic message.
+//! `.sensitive(false)` retains those details in the structured error and its
+//! display/debug output. List item-parser errors follow this policy too.
+//! Built-in parse errors omit raw input. Adapter read messages remain redacted
+//! when formatted regardless of sensitivity; directly inspecting the stored
+//! [`crate::EnvironmentError::Read`] message can still disclose it.
+//!
+//! Successful bindings return ordinary Rust values without sensitivity metadata.
+//! This option does not redact returned strings, collections, JSON, numbers, or
+//! application settings. Callers own logging, `Debug`, serialization, cloning,
+//! retention, and memory handling. Envbind provides no automatic zeroization or
+//! secret-memory protection. Omit derived `Debug` on credential-bearing settings,
+//! or supply an explicitly reviewed formatter; do not dump settings by default.
+//!
 //! # Fallback validation
 //!
 //! Every field skips validators for typed defaults unless `.validate_default()`

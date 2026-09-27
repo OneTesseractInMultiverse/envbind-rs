@@ -73,6 +73,13 @@ input; typed defaults are never reparsed. Fixes
 
 ### Fixed
 
+Replaced the service example's whole-settings dump with a fixed completion
+message and removed derived `Debug` from public settings examples. Documented
+that sensitivity controls binding diagnostics rather than returned values or
+application logging, with an explicitly redacted credential-settings example.
+Parsing and validation behavior are unchanged. Fixes
+[#21](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/21).
+
 Reject empty process-environment names and names containing `=` or NUL before
 lookup. These now return `EnvironmentError::InvalidName` through the existing
 `environment_error` binding code, including defaulted and optional fields.

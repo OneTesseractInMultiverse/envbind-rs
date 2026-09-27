@@ -59,11 +59,15 @@ cargo test --doc documentation::
 cargo test --doc -- --list
 ```
 
-At introduction, the gate discovers 30 snippets: 5 API examples and 25 from
-Markdown (9 README, 14 API guide, 1 architecture, and 1 testing guide). Two
-process-loading examples compile without running; the other 28 compile and
+The gate currently discovers 31 snippets: 5 API examples and 26 from
+Markdown (9 README, 15 API guide, 1 architecture, and 1 testing guide). Two
+process-loading examples compile without running; the other 29 compile and
 execute. No Rust examples are ignored. Counts can grow with the documentation;
 the other registered guides currently contain only non-Rust code blocks.
+
+The credential-settings example checks normal and alternate `Debug` output
+against a synthetic token. Its application-owned formatter deliberately omits
+all values; the bound token itself remains an ordinary string.
 
 Follow these rules when editing examples:
 

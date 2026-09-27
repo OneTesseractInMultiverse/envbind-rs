@@ -135,7 +135,7 @@ jobs:
         run: |
           mkdir -p target/release
           cargo generate-lockfile
-          cargo audit --json > target/release/audit.json
+          cargo audit --deny warnings --json > target/release/audit.json
           cp Cargo.lock target/release/Cargo.lock
 
       - name: Verify

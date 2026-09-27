@@ -124,6 +124,101 @@ Every other resolved registry package was checked against its latest stable
 release during this review. Regenerate and inspect the graph when updating;
 the review date does not freeze future dependency resolution.
 
+## Ongoing Advisory Checks
+
+The `CI` workflow runs the same `Security audit` job for pull requests, pushes
+to `main`, manual runs, and a daily schedule at 07:23 UTC. Scheduled runs use
+the latest commit on the default branch and become active when the workflow
+change reaches that branch. Schedules and explicit manual audit-only runs skip
+the Rust matrix, workflow tests, aggregate gate, and fuzzing. Normal pull
+request, push, and manual runs retain every check. Separate concurrency groups
+prevent an audit-only run from cancelling full CI.
+
+The job has a 15-minute timeout, read-only repository permissions, checkout
+credentials disabled, and no publishing credentials. It installs the pinned
+cargo-audit version on stable Rust, generates two fresh root lockfiles using
+`fallback` and `allow`, and audits those plus the unchanged `fuzz/Cargo.lock`.
+Every audit fetches the current RustSec database; no cached-only, stale,
+target-filtered, or advisory-ignore mode is used. Vulnerabilities and all
+warnings fail the job (`--deny warnings`). A failed audit still allows the
+other graphs to be checked, while preserving the failing job status. Registry,
+database, or dependency-resolution errors never count as a clean audit.
+
+Each run retains the three lockfiles and JSON reports in
+`security-audit-<run-id>-<attempt>` for 14 days, including evidence available
+when a check fails. The reports record database freshness and findings. Copy
+the artifact into the advisory investigation before it expires; rerunning a
+fresh resolution may select different versions.
+
+Run only this job manually with the local GitHub CLI:
+
+```sh
+gh workflow run ci.yml --ref main -f security_only=true
+gh run list --workflow ci.yml --event workflow_dispatch --limit 5
+gh run view RUN_ID --log
+gh run download RUN_ID --name security-audit-RUN_ID-1 --dir /tmp/envbind-audit
+```
+
+Replace `RUN_ID` and the attempt suffix with the selected run's values. To test
+a workflow change before merging, use its branch in place of `main`. Leave
+`security_only` unchecked or omit the input to run full CI. The scheduled job
+and this manual mode are the same job definition, not separate audit scripts.
+
+### Scope and Retained Release Resolutions
+
+Fresh maintained-branch resolutions detect advisories in dependencies selected
+today. They do not cover every older version permitted by the manifest, every
+consumer lockfile, or previously published release resolutions. Dependabot's
+dependency graph covers supported checked-in manifests and lockfiles; it does
+not replace the two explicit fresh root audits or scans of downstream apps.
+The scheduled RustSec job covers Rust dependencies. Existing weekly Dependabot
+checks also cover GitHub Actions and the Python workflow-test requirements.
+
+Release validation saves the exact audited `Cargo.lock`, JSON audit result,
+package archive, and source/checksum metadata together. The publishing handoff
+verifies and reuses this resolution; see [publishing](publishing.md). A retained
+audit report is evidence from its run date, not a guarantee against later
+advisories. When triaging a new advisory, retrieve the supported release's
+validation bundle, verify its recorded checksums, and audit its lockfile again
+with the current database:
+
+```sh
+cargo audit --deny warnings --file /path/to/verified-release/Cargo.lock
+```
+
+Archive release evidence for the supported version's lifetime before the
+workflow artifact expires. If an old release lockfile is unavailable, record
+the coverage gap and investigate the published manifest and downstream locks;
+do not substitute a newly generated lockfile and claim the old release passed.
+
+### Control and Notification Verification
+
+On 2026-09-27, the repository API confirmed vulnerability alerts enabled
+(HTTP 204), automated security fixes enabled and not paused, and a populated
+dependency-graph SBOM. Secret scanning and push protection were still enabled.
+No Dependabot alerts were open at that check. Recheck these controls with:
+
+```sh
+gh api -i repos/OneTesseractInMultiverse/envbind-rs/vulnerability-alerts
+gh api repos/OneTesseractInMultiverse/envbind-rs/automated-security-fixes
+gh api repos/OneTesseractInMultiverse/envbind-rs/dependency-graph/sbom
+gh api repos/OneTesseractInMultiverse/envbind-rs --jq .security_and_analysis
+```
+
+Pedro Guzmán (`@OneTesseractInMultiverse`) owns triage. His existing account
+settings were verified to enable failed-workflow email and new Dependabot
+alert notifications. GitHub routes scheduled-workflow notifications to the
+schedule's author, the last cron editor, or the user who re-enabled it; this
+ownership must be checked after changes. Account notification preferences are
+separate from repository configuration. Preserve the configured destination
+and recheck them in [notification settings](https://github.com/settings/notifications).
+The verification did not send an email-delivery probe.
+
+Follow the [security policy](../SECURITY.md#dependency-monitoring-and-response)
+for triage, schedule health checks, and the time-bounded exception policy.
+GitHub documents [workflow notifications](https://docs.github.com/en/actions/concepts/workflows-and-actions/notifications-for-workflow-runs)
+and [schedule behavior](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
+
 ## Future Updates
 
 Property tests use proptest 1.11 as a development-only dependency, with only

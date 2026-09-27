@@ -380,7 +380,7 @@ Follow the [release checklist](docs/release-checklist.md) to audit one dependenc
 resolution and run the checks, package verification, and publishing dry run with
 that lockfile. Record the exact commit and validation results. The
 [0.2.0 readiness record](docs/release-readiness.md) tracks support limits and
-remaining release actions, including the missing registry Trusted Publisher.
+remaining release actions, including validation of the final release source.
 
 The package includes source, tests, examples, docs, and the MIT license. It excludes build output and machine-specific
 files.

@@ -44,6 +44,13 @@ and remaining constraints. Fixes
 
 ### Added
 
+Configured and verified the crates.io Trusted Publisher for
+`OneTesseractInMultiverse/envbind-rs`, workflow `publish.yml`, environment
+`crates-io`. Recorded the registry scope and rechecked the existing GitHub
+approval/ref protections without requesting a publishing token or uploading
+a package. Fixes
+[#14](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/14).
+
 Enabled repository dependency alerts and automatic security-update pull
 requests. Added daily and manual audit-only checks of both fresh root
 resolutions and the committed fuzz lock, with read-only permissions, bounded

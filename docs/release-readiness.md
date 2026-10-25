@@ -24,9 +24,9 @@ application's responsibility. Defaults and finite-float validation remain
 explicit choices; 0.2.0 does not silently change those policies.
 
 The root lockfile is not committed. Validation must retain the exact audited
-resolution; consumers must audit their own locks. The yoke-derive 0.8.2 MSRV
-constraint remains intentional. Current resolution/tooling limits and review
-dates are recorded in [dependency maintenance](dependencies.md).
+resolution; consumers must audit their own locks. The reviewed yoke-derive
+0.8.4 constraint is shared with the fuzz lock. Current resolution/tooling limits
+and review dates are recorded in [dependency maintenance](dependencies.md).
 
 ## Work Included in the Candidate
 

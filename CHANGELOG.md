@@ -16,11 +16,12 @@ published, and these changes are not present in the published 0.1.0 package.
 
 ### Changed
 
-Retained the yoke-derive 0.8.2 compatibility pin after reproducing 0.8.3's
-undeclared Rust 1.87 requirement. Dependabot now excludes exactly 0.8.3 in both
-Cargo workspaces while allowing later versions to be reviewed. Rust 1.85
-remains supported. See [PR #30](https://github.com/OneTesseractInMultiverse/envbind-rs/pull/30)
-and the [dependency review](docs/dependencies.md#yoke-derive-083-review-on-2026-09-27).
+Updated yoke-derive to 0.8.4 and synchronized the fuzz lockfile, replacing the
+0.8.2 workaround for 0.8.3's Rust 1.85 incompatibility. Removed the obsolete
+Dependabot exclusion for 0.8.3. Updated serde_json to 1.0.154 in the fuzz
+workspace and the artifact actions to upload v7.0.2 and download v8.0.2 with
+verified commit pins. Rust 1.85 remains supported. See the
+[dependency review](docs/dependencies.md#review-on-2026-10-25).
 
 Synchronized usage and API documentation, contributor checks, and release
 instructions. Documented exact length units, whitespace and optional-error
@@ -36,10 +37,9 @@ Updated base64 to 0.23.1 while retaining the existing scalar decoder and Rust
 to v7.0.1, and crates-io-auth-action to v1.0.5 with verified commit pins.
 Stable CI now tests the newest permitted dependency graph, the MSRV job tests
 the Rust 1.85-compatible graph, and both graphs receive advisory audits.
-Dependabot also covers Python workflow test dependencies. The yoke-derive
-0.8.2 compatibility pin remains necessary; see the
-[dependency review](docs/dependencies.md) for the complete version inventory
-and remaining constraints. Fixes
+Dependabot also covers Python workflow test dependencies. See the
+[dependency review](docs/dependencies.md) for the dated version inventories
+and current constraints. Fixes
 [#13](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/13).
 
 ### Added

@@ -50,11 +50,10 @@ base64 = { version = "0.23", default-features = false, features = ["std"] }
 regex = "1"
 serde_json = "1"
 url = "2.5.8"
-# Keep url's ICU derive dependency compatible with Rust 1.85. Version 0.8.3
-# uses str::from_utf8, stabilized in Rust 1.87, without declaring that minimum.
-# See docs/dependencies.md for the reproduced failure and update policy. Remove
-# this constraint once a compatible upstream release passes the MSRV tests.
-yoke-derive = "=0.8.2"
+# Use the reviewed ICU derive release, which declares Rust 1.82 support.
+# Version 0.8.3 failed on Rust 1.85. Keep the fuzz lock aligned when updating;
+# see docs/dependencies.md for compatibility checks and the review history.
+yoke-derive = "=0.8.4"
 
 [dev-dependencies]
 # Fixed-seed property tests only; process forking and timeouts are disabled.

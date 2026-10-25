@@ -5,6 +5,49 @@ requirements compatible with that minimum and review CI tooling separately.
 `Cargo.lock` remains untracked; release validation preserves its generated,
 audited lockfile in the release artifact.
 
+## Review on 2026-10-25
+
+Reviewed the four updates proposed in
+[PR #43](https://github.com/OneTesseractInMultiverse/envbind-rs/pull/43),
+[PR #44](https://github.com/OneTesseractInMultiverse/envbind-rs/pull/44),
+[PR #45](https://github.com/OneTesseractInMultiverse/envbind-rs/pull/45), and
+[PR #46](https://github.com/OneTesseractInMultiverse/envbind-rs/pull/46).
+This review covers those updates and their required lockfile changes; the
+older full dependency inventories below retain their original review dates.
+
+- `yoke-derive = "=0.8.4"` replaces 0.8.2. Its published manifest declares
+  Rust 1.82 support, and the source no longer calls the Rust 1.87-only
+  `str::from_utf8` function that broke 0.8.3. The library keeps Rust 1.85 as
+  its minimum. The obsolete Dependabot exclusion for 0.8.3 is removed; the
+  new root requirement already excludes that version.
+- The root requirement and committed fuzz lock now select the same derive
+  version. Updating the requirement alone caused #43's locked fuzz fetch to
+  fail before any fuzz target ran. The lock update also removes the unused
+  syn 2 and synstructure 0.13 copies; the derive now shares the existing
+  syn 3 and synstructure 0.14 dependencies.
+- The fuzz lock selects `serde_json` 1.0.154, which declares Rust 1.71 support.
+  The existing root and fuzz requirements, `serde_json = "1"`, already allow
+  this release. Other fuzz dependency versions are retained.
+
+The artifact action tags resolve to these full commits:
+
+| Action | Release | Commit |
+| --- | --- | --- |
+| actions/upload-artifact | [v7.0.2](https://github.com/actions/upload-artifact/releases/tag/v7.0.2) | `cf430e030ddbb5b0abf93d22962f4752f3646cd9` |
+| actions/download-artifact | [v8.0.2](https://github.com/actions/download-artifact/releases/tag/v8.0.2) | `9000827ccba6bdab643e8b6fd33ac0654aef8333` |
+
+Both updates retain their action inputs and Node 24 runtime. The upstream
+changes update the artifact client and improve rate-limit retries. Release
+uploads still use `archive: true`, downloads select the validated artifact by
+ID, and permissions, environment approval, and checksum checks are unchanged.
+Checkout and registry authentication action pins are unchanged.
+
+Validate these changes with the Rust 1.85 and stable gates, both fresh root
+dependency audits, the committed fuzz audit, a locked fuzz fetch and bounded
+sanitizer run, and the release workflow regressions. Record the exact commit
+and CI results in the pull request; earlier readiness results do not certify
+this changed candidate.
+
 ## yoke-derive 0.8.3 Review on 2026-09-27
 
 [PR #30](https://github.com/OneTesseractInMultiverse/envbind-rs/pull/30) proposes
@@ -17,15 +60,14 @@ The release declares no `rust-version`, so Cargo's MSRV-aware resolver cannot
 filter it out. An isolated crate depending only on `yoke-derive = "=0.8.3"`
 reproduced error `E0599` with Rust 1.85.0 and compiled with Rust 1.98.1.
 
-Keep `yoke-derive = "=0.8.2"` and the Rust 1.85 support contract. Dependabot
-ignores exactly `=0.8.3` in both Cargo workspaces; it does not ignore the whole
-dependency or subsequent versions. The leading `=` is intentional: a bare
+At that review, `yoke-derive = "=0.8.2"` preserved the Rust 1.85 contract.
+Dependabot excluded exactly `=0.8.3` in both Cargo workspaces, leaving
+subsequent versions eligible. The leading `=` was intentional: a bare
 Cargo requirement would also match later compatible versions. See the
 [Dependabot ignore options](https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference#ignore).
-Remove the ignore rule and compatibility pin when a fixed upstream release
-passes the MSRV gate, or revisit both as part of an explicit MSRV policy change.
-Advisory audits and maintainer triage continue; this is a compiler-compatibility
-constraint, not a vulnerability exception.
+The [0.8.4 review](#review-on-2026-10-25) supersedes that constraint and removes
+the exclusion. This was a compiler-compatibility decision, not a vulnerability
+exception; advisory audits and maintainer triage continue.
 
 The same PR also fails fuzzing because `fuzz/Cargo.lock` still selects 0.8.2.
 For an accepted root dependency change, refresh and review the committed fuzz
@@ -119,7 +161,8 @@ CI checks two fresh dependency resolutions:
   releases compatible with the declared minimum.
 - Stable uses `CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS=allow` to exercise the
   newest releases permitted by the manifest, including dependencies requiring
-  a newer compiler. The stable compiler checked in this review was Rust 1.98.1.
+  a newer compiler. The stable compiler used for the 2026-10-25 review is
+  Rust 1.99.1.
 
 The security job audits both resolutions. Release validation retains Cargo's
 MSRV-aware default resolution and audits that exact lockfile before packaging.
@@ -135,17 +178,16 @@ check. See [platform CI](testing-guide.md#platform-ci-and-required-checks).
 
 Remaining constraints are explicit:
 
-- `yoke-derive = "=0.8.2"` is retained. Version 0.8.3 calls `str::from_utf8`,
-  which does not compile on Rust 1.85, but does not declare the newer compiler
-  requirement. A fresh build without the constraint reproduced this error.
-  Remove the workaround once a compatible upstream release passes the MSRV
-  job, or as part of an intentional, documented MSRV change.
-- That macro still requires syn 2.0.119 and synstructure 0.13.2. The graphs also
-  contain current syn 3.0.6 and synstructure 0.14.0 for other macros; Cargo
-  cannot replace a dependency with a semver-incompatible major version.
+- `yoke-derive = "=0.8.4"` selects the reviewed release for both root
+  resolutions and the fuzz workspace. Future updates must keep the committed
+  fuzz lock aligned and pass the MSRV gate. The 0.8.2 workaround is retired;
+  the incompatible 0.8.3 release remains excluded by the root requirement.
+- The derive uses syn 3 and synstructure 0.14. Older review records describe
+  syn 2 and synstructure 0.13 copies that this update removes from the fuzz lock.
 - The MSRV graph uses ICU collections, locale core, normalizer, normalizer data,
   and provider 2.1.1, properties and properties data 2.1.2, and idna_adapter
-  1.2.1. Stable exercises ICU 2.3.0 (provider 2.3.1) and idna_adapter 1.2.2.
+  1.2.1. The 2026-10-25 stable resolution exercises ICU 2.4.0 and
+  idna_adapter 1.2.2; the fuzz lock retains ICU 2.3.0 (provider 2.3.1).
   The newer ICU packages require Rust 1.88, and idna_adapter 1.2.2 requires 1.86.
   These older MSRV selections are resolver choices, not additional pins.
 

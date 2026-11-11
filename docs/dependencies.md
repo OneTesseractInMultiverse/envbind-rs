@@ -5,6 +5,95 @@ requirements compatible with that minimum and review CI tooling separately.
 `Cargo.lock` remains untracked; release validation preserves its generated,
 audited lockfile in the release artifact.
 
+## Review on 2026-11-10
+
+The upgrade plan and acceptance evidence are tracked in
+[#49](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/49).
+The plan is to reconcile every open Dependabot proposal, update the manually
+pinned tooling, refresh all three dependency graphs, and validate compatibility
+before merging. Publication remains a separate release action.
+
+### Dependabot Disposition
+
+| Proposal | Review and action |
+| --- | --- |
+| [#7: base64 0.23](https://github.com/OneTesseractInMultiverse/envbind-rs/pull/7) | Already implemented on main. The requirement resolves 0.23.1 with only `std` enabled. Close the redundant proposal without applying its older manifest diff. |
+| [#6: checkout v7.0.1](https://github.com/OneTesseractInMultiverse/envbind-rs/pull/6) | Already implemented on main at the verified full commit below. Close the redundant proposal. |
+| [#48: registry authentication v1.0.6](https://github.com/OneTesseractInMultiverse/envbind-rs/pull/48) | Incorporate the update in this refresh and link the replacement pull request when closing the original proposal. |
+
+### Current Inventory
+
+Checked every registry package in the fresh root `allow` and `fallback`
+resolutions and refreshed fuzz lock against crates.io's highest non-yanked
+stable version. Also checked upstream action releases, manually installed Rust
+tools, and PyPI. The graphs contain 60, 64, and 55 registry packages respectively;
+local workspace packages are excluded from these counts.
+
+| Dependency or tool | Reviewed version | Decision |
+| --- | --- | --- |
+| base64 | 0.23.1 | Existing `0.23` requirement; scalar decoder and feature selection unchanged. |
+| regex | 1.13.1 | Existing `1` requirement. |
+| serde_json | 1.0.154 | Existing `1` requirement in both workspaces. |
+| url | 2.5.8 | Existing requirement. |
+| yoke-derive | 0.8.4 | Retain the reviewed exact constraint and Rust 1.85 support. |
+| proptest | 1.12.0 on stable; 1.11.0 on Rust 1.85 | Keep `1.11`, which permits both; 1.12 requires Rust 1.88. |
+| libfuzzer-sys | 0.4.13 | Current exact pin. |
+| cargo-fuzz | 0.13.2 | Current tooling pin; retain `nightly-2026-09-24` for reproducibility. |
+| cargo-audit | 0.23.0 | Upgrade both workflows from 0.22.2; installed with `--locked` on stable Rust. |
+| PyYAML | 6.0.3 | Current exact workflow-test requirement. |
+
+All GitHub Action releases were resolved to their full commits:
+
+| Action | Release | Commit |
+| --- | --- | --- |
+| actions/checkout | [v7.0.1](https://github.com/actions/checkout/releases/tag/v7.0.1) | `3d3c42e5aac5ba805825da76410c181273ba90b1` |
+| actions/upload-artifact | [v7.0.2](https://github.com/actions/upload-artifact/releases/tag/v7.0.2) | `cf430e030ddbb5b0abf93d22962f4752f3646cd9` |
+| actions/download-artifact | [v8.0.2](https://github.com/actions/download-artifact/releases/tag/v8.0.2) | `9000827ccba6bdab643e8b6fd33ac0654aef8333` |
+| rust-lang/crates-io-auth-action | [v1.0.6](https://github.com/rust-lang/crates-io-auth-action/releases/tag/v1.0.6) | `3268eb413133e2960fa4ae0e963ca76380c54cd9` |
+
+The authentication update refreshes upstream dependencies and its generated
+bundle. Action metadata, Node 24 runtime, authentication source, and cleanup
+source are unchanged. The local workflow preserves token scope, permissions,
+environment approval, and package integrity checks. No token exchange is
+needed to validate this dependency refresh.
+
+[cargo-audit 0.23.0](https://github.com/rustsec/rustsec/releases/tag/cargo-audit%2Fv0.23.0)
+uses rustsec 0.34 and changes warning details in JSON output. Its Rust 1.88
+minimum applies to CI tooling, not to the library. The workflows retain
+`--deny warnings --json` and use the exit status to reject findings; the
+release handoff retains and hashes the report without depending on its fields.
+
+The fuzz lock updates 20 existing packages and adds `utf_types` 1.0.0. It now
+uses ICU 2.4.0, arbitrary 1.5.0, cc 1.11.1, find-msvc-tools 0.1.15,
+itoa 1.0.19, libc 0.2.191, smallvec 1.16.5, syn 3.0.10, tinystr 0.8.5,
+unicode-ident 1.0.27, utf8_iter 1.1.0, yoke 0.8.4, zerovec 0.11.9, and
+zerovec-derive 0.11.7. Root requirements already allow current runtime releases;
+the root lock remains untracked.
+
+### Compatibility and Validation
+
+The [proptest 1.12 changelog](https://github.com/proptest-rs/proptest/blob/v1.12.0/proptest/CHANGELOG.md)
+describes its Rust 1.88 minimum and migration to rand 0.10. Stable tests exercise
+that release and its new RNG dependencies. Rust 1.85 keeps proptest 1.11 and
+its rand/rand_core/rand_chacha 0.9, rand_xorshift 0.4, and getrandom 0.3 chain.
+That chain also retains syn 2 through zerocopy-derive, wasip2 1.0.1 through
+getrandom, and wit-bindgen 0.46 through wasip2. These cannot be migrated by
+adding unrelated direct pins. The newer wasip2 1.x releases require Rust 1.87.
+
+The MSRV graph also retains ICU 2.1 and idna_adapter 1.2.1 as detailed below.
+Stable and fuzz use getrandom 0.4, whose UEFI dependency still requires r-efi 6;
+the MSRV graph uses r-efi 5 through getrandom 0.3. The latest r-efi 7 is outside
+both upstream requirements. Every other package in the stable and fuzz graphs
+is on its latest non-yanked stable release at this review date.
+
+Rust 1.99.1 and Rust 1.85 tests, the release workflow regressions, and all three
+audits with cargo-audit 0.23.0 pass. RustSec database commit
+`28d73fc95e5972af3403225a217def57dcaba3c4` reports no vulnerabilities or
+maintenance warnings; GitHub also reports no open Dependabot security alerts.
+Record package, bounded sanitizer fuzzing, and hosted CI results against the
+implementation commit in #49 and its linked pull request. Earlier readiness
+evidence remains tied to its original source and locks.
+
 ## Review on 2026-10-25
 
 Reviewed the four updates proposed in
@@ -161,15 +250,15 @@ CI checks two fresh dependency resolutions:
   releases compatible with the declared minimum.
 - Stable uses `CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS=allow` to exercise the
   newest releases permitted by the manifest, including dependencies requiring
-  a newer compiler. The stable compiler used for the 2026-10-25 review is
+  a newer compiler. The stable compiler used for the 2026-11-10 review is
   Rust 1.99.1.
 
 The security job audits both resolutions. Release validation retains Cargo's
 MSRV-aware default resolution and audits that exact lockfile before packaging.
 The earlier graphs reviewed on 2026-09-22 contained 46 registry packages and
 passed cargo-audit 0.22.2 without vulnerability findings or maintenance warnings.
-The [2026-09-26 review](#review-on-2026-09-26) supersedes that package inventory
-and includes the subsequently added property and fuzz tooling.
+The [2026-11-10 review](#review-on-2026-11-10) supplies the current package
+inventory, including property and fuzz tooling.
 
 The stable dependency graph is now exercised by native Linux, macOS, and
 Windows jobs. The required `Rust stable` aggregate check succeeds only after
@@ -186,8 +275,8 @@ Remaining constraints are explicit:
   syn 2 and synstructure 0.13 copies that this update removes from the fuzz lock.
 - The MSRV graph uses ICU collections, locale core, normalizer, normalizer data,
   and provider 2.1.1, properties and properties data 2.1.2, and idna_adapter
-  1.2.1. The 2026-10-25 stable resolution exercises ICU 2.4.0 and
-  idna_adapter 1.2.2; the fuzz lock retains ICU 2.3.0 (provider 2.3.1).
+  1.2.1. The 2026-11-10 stable resolution and refreshed fuzz lock exercise
+  ICU 2.4.0 and idna_adapter 1.2.2.
   The newer ICU packages require Rust 1.88, and idna_adapter 1.2.2 requires 1.86.
   These older MSRV selections are resolver choices, not additional pins.
 
@@ -292,9 +381,10 @@ and [schedule behavior](https://docs.github.com/en/actions/reference/workflows-a
 
 ## Future Updates
 
-Property tests use proptest 1.11 as a development-only dependency, with only
-`std` enabled to avoid subprocess/fork tooling. It supports Rust 1.85 and uses
-the MIT/Apache-2.0 license. The separate non-publishable `fuzz` workspace pins
+Property tests use the proptest `1.11` range as a development-only dependency,
+with only `std` enabled to avoid subprocess/fork tooling. Rust 1.85 resolves
+1.11; stable also exercises 1.12, which requires Rust 1.88. Proptest uses the
+MIT/Apache-2.0 license. The separate non-publishable `fuzz` workspace pins
 libfuzzer-sys 0.4.13 and retains its own lockfile; its LLVM runtime adds the NCSA
 license alongside MIT/Apache-2.0. Both choices and maintenance costs are
 documented in the [fuzzing guide](fuzzing.md).

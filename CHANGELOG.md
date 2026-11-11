@@ -16,6 +16,12 @@ published, and these changes are not present in the published 0.1.0 package.
 
 ### Changed
 
+Updated cargo-audit to 0.23.0 in both workflows and crates-io-auth-action to
+v1.0.6 at its verified commit. Refreshed the fuzz lock to current compatible
+dependencies, including ICU 2.4.0. Reviewed all open Dependabot proposals and
+documented the stable/MSRV split for proptest 1.12/1.11 without raising Rust
+1.85 support. See the [2026-11-10 dependency review](docs/dependencies.md#review-on-2026-11-10).
+
 Updated yoke-derive to 0.8.4 and synchronized the fuzz lockfile, replacing the
 0.8.2 workaround for 0.8.3's Rust 1.85 incompatibility. Removed the obsolete
 Dependabot exclusion for 0.8.3. Updated serde_json to 1.0.154 in the fuzz

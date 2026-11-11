@@ -7,6 +7,11 @@ Version 0.2.0 is prepared but **not published**. The current registry package is
 the new candidate. A production deployment must select the reviewed version
 and follow the [migration guide](migrating-to-0.2.md).
 
+The intended release date is **2026-11-10**. Final validation and publication
+are tracked in [#51](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/51).
+The dated changelog records the planned release; registry availability must
+still be confirmed after the protected publishing workflow succeeds.
+
 ## Release Boundary
 
 The supported compiler baseline is Rust 1.85 on Linux plus current stable Rust

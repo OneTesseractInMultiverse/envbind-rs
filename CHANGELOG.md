@@ -4,7 +4,7 @@ User-facing changes are tracked in this file.
 
 The project uses semantic versioning.
 
-## 0.2.0 - Unreleased
+## 0.2.0 - 2026-11-10
 
 The next release uses a new pre-1.0 minor line because URL validation and
 process-variable name handling deliberately reject configurations that could

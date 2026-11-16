@@ -4,15 +4,27 @@ User-facing changes are tracked in this file.
 
 The project uses semantic versioning.
 
-## 0.2.0 - 2026-11-10
+## Unreleased
 
-The next release uses a new pre-1.0 minor line because URL validation and
+Updated the non-publishable fuzz workspace's cc build dependency from 1.11.1
+to 1.11.2, including its GCC AddressSanitizer fix. Updated publication and
+support documentation after verifying 0.2.0 on crates.io. These maintenance
+changes do not require another library release. See
+[#53](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/53).
+
+## 0.2.0 - 2026-11-16
+
+Prepared on 2026-11-10 and published on 2026-11-16. The immutable release tag
+and packaged changelog retain the preparation date; this record gives the
+confirmed publication date.
+
+This release uses a new pre-1.0 minor line because URL validation and
 process-variable name handling deliberately reject configurations that could
 previously succeed. Existing defaults and floating-point parsing stay
 permissive; their stronger validation policies remain opt-in. Rust 1.85 is
 still supported. See the [migration guide](docs/migrating-to-0.2.md) and
-[release-readiness record](docs/release-readiness.md). This version has not been
-published, and these changes are not present in the published 0.1.0 package.
+[release-readiness record](docs/release-readiness.md). Version 0.2.0 is
+published; these changes are not present in the older 0.1.0 package.
 
 ### Changed
 

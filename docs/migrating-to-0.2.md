@@ -1,9 +1,9 @@
 # Migrating to 0.2
 
-Version 0.2.0 is the next, currently unpublished release. The latest registry
-version is 0.1.0; the repository's intermediate 0.1.1 metadata correction was
-not published and is included here. Examples in the current checkout describe
-0.2.0. Do not assume they are supported by the old registry package.
+Version 0.2.0 was published on 2026-11-16 and supersedes 0.1.0. The
+repository's intermediate 0.1.1 metadata correction was not published and is
+included in 0.2.0. Examples in the current checkout describe 0.2.0; they are
+not all supported by the old 0.1.0 registry package.
 
 ## Versioning Decision
 

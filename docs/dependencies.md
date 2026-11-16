@@ -5,6 +5,39 @@ requirements compatible with that minimum and review CI tooling separately.
 `Cargo.lock` remains untracked; release validation preserves its generated,
 audited lockfile in the release artifact.
 
+## Review on 2026-11-16
+
+Rechecked direct dependencies, all packages in fresh stable/MSRV resolutions,
+the committed fuzz lock, GitHub Action release tags and full commits, manually
+installed audit/fuzz tools, and PyYAML. No Dependabot PRs or security alerts
+were open. The runtime requirements and all pinned tools/actions remain current
+at the versions in the [2026-11-10 inventory](#current-inventory).
+
+The only compatible fuzz-lock update is
+[cc 1.11.2](https://github.com/rust-lang/cc-rs/releases/tag/cc-v1.11.2), replacing
+1.11.1. Upstream fixes GCC merging identical variables when AddressSanitizer
+is enabled and refreshes target information. Only the package version and
+checksum change in the lockfile; the pinned fuzz compiler remains unchanged.
+The root library dependency graph does not use cc, and the fuzz workspace is
+not packaged, so this maintenance update does not require a library patch
+release. Work and verification are tracked in
+[#53](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/53).
+
+Rust 1.100.0 is the current stable compiler for this review. The latest root
+graph selects proptest 1.12.0 and rand 0.10.4; Rust 1.85 continues to select
+proptest 1.11.0 and its compatible RNG dependencies. The existing constraints
+for ICU, idna_adapter, syn, and WASI are unchanged. Getrandom still requires
+r-efi 5 on the MSRV graph and 6 on stable/fuzz; r-efi 7.2.0 is outside those
+upstream version requirements. Every other stable/fuzz selection is current
+after updating cc.
+
+The root stable and MSRV graphs contain 60 and 64 registry packages; fuzz has
+55. Fresh audits with cargo-audit 0.23.0 and RustSec database commit
+`02e2517f457a359fc6d3440ea4560c8ea188fee8` report zero vulnerabilities or
+maintenance warnings, including the updated fuzz lock. The locked nightly
+fetch also passes. Hosted CI verifies the supported platform/MSRV matrix and
+the bounded sanitizer targets; retain its exact commit/run link in #53.
+
 ## Review on 2026-11-10
 
 The upgrade plan and acceptance evidence are tracked in
@@ -250,14 +283,14 @@ CI checks two fresh dependency resolutions:
   releases compatible with the declared minimum.
 - Stable uses `CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS=allow` to exercise the
   newest releases permitted by the manifest, including dependencies requiring
-  a newer compiler. The stable compiler used for the 2026-11-10 review is
-  Rust 1.99.1.
+  a newer compiler. The stable compiler used for the 2026-11-16 review is
+  Rust 1.100.0.
 
 The security job audits both resolutions. Release validation retains Cargo's
 MSRV-aware default resolution and audits that exact lockfile before packaging.
 The earlier graphs reviewed on 2026-09-22 contained 46 registry packages and
 passed cargo-audit 0.22.2 without vulnerability findings or maintenance warnings.
-The [2026-11-10 review](#review-on-2026-11-10) supplies the current package
+The [2026-11-16 review](#review-on-2026-11-16) supplies the current package
 inventory, including property and fuzz tooling.
 
 The stable dependency graph is now exercised by native Linux, macOS, and

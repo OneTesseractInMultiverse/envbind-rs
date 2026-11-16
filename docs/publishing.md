@@ -132,12 +132,17 @@ configuration recovery and safe approval-gate testing.
 
 ## Current Registry Status
 
-As checked on 2026-09-27, crates.io contains envbind 0.1.0. Version 0.2.0 is
-an unreleased candidate. The GitHub environment and ref protections and the
-matching crates.io Trusted Publisher are configured and verified. See the
-[release-control verification record](release-controls.md#registry-verification-record)
-and the [readiness record](release-readiness.md) for the remaining release
-actions. Recheck the external settings before each release.
+Version [0.2.0](https://crates.io/crates/envbind/0.2.0) was published on
+2026-11-16 from tag `v0.2.0`, commit
+`997c0cedf8e843d6a65f73ce95588034db401175`. The protected workflow used the
+configured Trusted Publisher. The registry archive checksum matches the
+validated release bundle; [#51](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/51)
+records the workflow and artifact evidence. Version 0.1.0 remains historical;
+0.1.1 was never published.
+
+Recheck external settings before each future release using the
+[release-control runbook](release-controls.md). Do not dispatch publishing
+again for the immutable 0.2.0 version.
 
 ## Routine Release
 

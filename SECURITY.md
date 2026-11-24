@@ -6,7 +6,7 @@ The latest published minor line receives vulnerability fixes.
 
 | Version | Status |
 | --- | --- |
-| `0.2.x` | Supported; latest published version is 0.2.0 |
+| `0.2.x` | Supported |
 | `0.1.x` | Superseded; upgrade to 0.2.x for the reviewed fixes |
 
 Version 0.2.0 was published on 2026-11-16. Its validation and fixes do not

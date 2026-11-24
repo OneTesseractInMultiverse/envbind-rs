@@ -3,6 +3,17 @@
 use envbind::{ValidationError, validators};
 
 #[test]
+fn email_validator_checks_each_value_when_reused() {
+    let validate = validators::is_email();
+    assert_eq!(validate("first+tag@example.org"), Ok(()));
+    assert_eq!(
+        validate("missing-domain"),
+        Err(ValidationError::new("value must be an email address"))
+    );
+    assert_eq!(validate("second@example.net"), Ok(()));
+}
+
+#[test]
 fn min_length_accepts_long_enough_value() {
     let result = validators::min_length(3)("abcd");
 

@@ -5,6 +5,21 @@ requirements compatible with that minimum and review CI tooling separately.
 `Cargo.lock` remains untracked; release validation preserves its generated,
 audited lockfile in the release artifact.
 
+## Review on 2026-11-24
+
+The [November 24 audit](https://github.com/OneTesseractInMultiverse/envbind-rs/actions/runs/45424073019)
+flagged `url` 2.5.8 in the fuzz lock. The same version appears in the published
+0.2.0 lockfile. Fresh stable and Rust 1.85 resolutions selected 2.5.9.
+Version 0.2.1 raises the minimum to 2.5.9 so consumers get the upstream fix
+for [RUSTSEC-2026-0592](https://rustsec.org/advisories/RUSTSEC-2026-0592.html).
+Applications on 0.2.0 can also refresh their own lock with `cargo update -p url`.
+
+The fuzz lock now uses url 2.5.9, form_urlencoded 1.2.3, cc 1.11.3,
+regex 1.13.2, regex-automata 0.4.19, regex-syntax 0.8.12, and smallvec
+1.16.6. Workflow tests use PyYAML 6.0.4. Existing GitHub Action pins,
+cargo-audit 0.23.0, and cargo-fuzz 0.13.2 matched their upstream releases.
+Rust 1.85 continues to use the compatible ICU and proptest versions below.
+
 ## Review on 2026-11-16
 
 Rechecked direct dependencies, all packages in fresh stable/MSRV resolutions,
@@ -290,7 +305,7 @@ The security job audits both resolutions. Release validation retains Cargo's
 MSRV-aware default resolution and audits that exact lockfile before packaging.
 The earlier graphs reviewed on 2026-09-22 contained 46 registry packages and
 passed cargo-audit 0.22.2 without vulnerability findings or maintenance warnings.
-The [2026-11-16 review](#review-on-2026-11-16) supplies the current package
+The [2026-11-16 review](#review-on-2026-11-16) records the November 16 package
 inventory, including property and fuzz tooling.
 
 The stable dependency graph is now exercised by native Linux, macOS, and

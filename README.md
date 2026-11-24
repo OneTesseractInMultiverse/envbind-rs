@@ -58,8 +58,7 @@ The crates.io package name is `envbind`. The GitHub repository is
 `OneTesseractInMultiverse/envbind-rs`. Rust code imports the crate as
 `envbind`.
 
-**0.2.0 is published on [crates.io](https://crates.io/crates/envbind/0.2.0)**.
-This README describes its API and behavior. Review the
+The supported 0.2 series is available on [crates.io](https://crates.io/crates/envbind). Review the
 [migration guide](docs/migrating-to-0.2.md) before upgrading from 0.1.x and the
 [release-readiness record](docs/release-readiness.md) for validation and support
 limits. Add the dependency:

@@ -4,13 +4,13 @@ User-facing changes are tracked in this file.
 
 The project uses semantic versioning.
 
-## Unreleased
+## 0.2.1 - 2026-11-24 (release preparation)
 
-Updated the non-publishable fuzz workspace's cc build dependency from 1.11.1
-to 1.11.2, including its GCC AddressSanitizer fix. Updated publication and
-support documentation after verifying 0.2.0 on crates.io. These maintenance
-changes do not require another library release. See
-[#53](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/53).
+- Require `url` 2.5.9 or later in the compatible 2.x line to pick up the fix
+  for [RUSTSEC-2026-0592](https://rustsec.org/advisories/RUSTSEC-2026-0592.html).
+  Envbind's URL validators inspect the scheme and host and do not compute origins.
+- Compile the email validator's fixed expression once and reuse it across bindings.
+- Refresh the fuzz lockfile and update the workflow tests to PyYAML 6.0.4.
 
 ## 0.2.0 - 2026-11-16
 

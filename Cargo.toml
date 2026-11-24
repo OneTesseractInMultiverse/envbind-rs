@@ -1,6 +1,6 @@
 [package]
 name = "envbind"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 rust-version = "1.85"
 description = "Typed environment binding primitives for Rust services."
@@ -49,7 +49,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 base64 = { version = "0.23", default-features = false, features = ["std"] }
 regex = "1"
 serde_json = "1"
-url = "2.5.8"
+url = "2.5.9"
 # Use the reviewed ICU derive release, which declares Rust 1.82 support.
 # Version 0.8.3 failed on Rust 1.85. Keep the fuzz lock aligned when updating;
 # see docs/dependencies.md for compatibility checks and the review history.

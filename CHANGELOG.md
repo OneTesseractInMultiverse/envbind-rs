@@ -4,7 +4,9 @@ User-facing changes are tracked in this file.
 
 The project uses semantic versioning.
 
-## 0.2.1 - 2026-11-24 (release preparation)
+## 0.2.1 - 2026-11-24
+
+Published on [crates.io](https://crates.io/crates/envbind/0.2.1).
 
 - Require `url` 2.5.9 or later in the compatible 2.x line to pick up the fix
   for [RUSTSEC-2026-0592](https://rustsec.org/advisories/RUSTSEC-2026-0592.html).

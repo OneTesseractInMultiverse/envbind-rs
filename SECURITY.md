@@ -9,9 +9,10 @@ The latest published minor line receives vulnerability fixes.
 | `0.2.x` | Supported |
 | `0.1.x` | Superseded; upgrade to 0.2.x for the reviewed fixes |
 
-Version 0.2.0 was published on 2026-11-16. Its validation and fixes do not
-retroactively apply to 0.1.0. Consumers should follow the
-[migration guide](docs/migrating-to-0.2.md) when moving to the supported line.
+Version 0.2.1 requires `url` 2.5.9 or later in the compatible 2.x line and
+includes the upstream fix for [RUSTSEC-2026-0592](https://rustsec.org/advisories/RUSTSEC-2026-0592.html).
+See the [migration guide](docs/migrating-to-0.2.md) for instructions on upgrading
+from 0.1.x or refreshing an application's 0.2.0 lockfile.
 
 ## Reporting a Vulnerability
 

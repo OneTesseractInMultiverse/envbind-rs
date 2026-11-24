@@ -1,6 +1,7 @@
 //! Reusable validation helpers for typed variable specs.
 
 use std::fmt::Display;
+use std::sync::LazyLock;
 
 use regex::Regex;
 use url::{ParseError, Url};
@@ -270,8 +271,12 @@ where
 /// Require a string to be a common email address shape.
 #[must_use = "pass validators to a variable spec"]
 pub fn is_email() -> impl Fn(&str) -> Result<(), ValidationError> + Send + Sync + 'static {
-    move |value| {
-        let regex = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+    static EMAIL: LazyLock<Result<Regex, regex::Error>> =
+        LazyLock::new(|| Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"));
+
+    |value| {
+        let regex = EMAIL
+            .as_ref()
             .map_err(|_| ValidationError::new("email validator is unavailable"))?;
         if regex.is_match(value) {
             Ok(())

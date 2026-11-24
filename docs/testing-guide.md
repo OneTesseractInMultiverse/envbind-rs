@@ -193,7 +193,7 @@ main protection drift, and API access failures. It never changes repository
 settings. Live approval-gate verification is a separate maintainer procedure
 using the token-free fixture in the [release control runbook](release-controls.md).
 
-PyYAML 6.0.3 is a pinned, MIT-licensed test dependency used to read the actual
+PyYAML 6.0.4 is a pinned, MIT-licensed test dependency used to read the actual
 workflow YAML. It has no runtime dependencies and is excluded from the Rust
 crate package. Maintain its pin with the other CI tooling dependencies.
 

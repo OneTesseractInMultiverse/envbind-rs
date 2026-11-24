@@ -1,9 +1,11 @@
 # Migrating to 0.2
 
-Version 0.2.0 is the next, currently unpublished release. The latest registry
-version is 0.1.0; the repository's intermediate 0.1.1 metadata correction was
-not published and is included here. Examples in the current checkout describe
-0.2.0. Do not assume they are supported by the old registry package.
+Version 0.2.0 was published on 2026-11-16 and supersedes 0.1.0. The
+repository's intermediate 0.1.1 metadata correction was not published and is
+included in 0.2.0. Version 0.2.1 raises the minimum `url` dependency to 2.5.9.
+Applications upgrading from 0.2.0 can keep their existing field definitions
+and validators. Applications staying on 0.2.0 should refresh their own lockfile
+with `cargo update -p url` to pick up the upstream security fix.
 
 ## Versioning Decision
 

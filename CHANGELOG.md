@@ -4,15 +4,27 @@ User-facing changes are tracked in this file.
 
 The project uses semantic versioning.
 
-## 0.2.0 - 2026-11-10
+## 0.2.1 - 2026-11-24 (release preparation)
 
-The next release uses a new pre-1.0 minor line because URL validation and
+- Require `url` 2.5.9 or later in the compatible 2.x line to pick up the fix
+  for [RUSTSEC-2026-0592](https://rustsec.org/advisories/RUSTSEC-2026-0592.html).
+  Envbind's URL validators inspect the scheme and host and do not compute origins.
+- Compile the email validator's fixed expression once and reuse it across bindings.
+- Refresh the fuzz lockfile and update the workflow tests to PyYAML 6.0.4.
+
+## 0.2.0 - 2026-11-16
+
+Prepared on 2026-11-10 and published on 2026-11-16. The immutable release tag
+and packaged changelog retain the preparation date; this record gives the
+confirmed publication date.
+
+This release uses a new pre-1.0 minor line because URL validation and
 process-variable name handling deliberately reject configurations that could
 previously succeed. Existing defaults and floating-point parsing stay
 permissive; their stronger validation policies remain opt-in. Rust 1.85 is
 still supported. See the [migration guide](docs/migrating-to-0.2.md) and
-[release-readiness record](docs/release-readiness.md). This version has not been
-published, and these changes are not present in the published 0.1.0 package.
+[release-readiness record](docs/release-readiness.md). Version 0.2.0 is
+published; these changes are not present in the older 0.1.0 package.
 
 ### Changed
 

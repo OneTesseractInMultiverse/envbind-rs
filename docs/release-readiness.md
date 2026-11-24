@@ -2,15 +2,13 @@
 
 This record covers the consolidated changes tracked in
 [#23](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/23).
-Version 0.2.0 is prepared but **not published**. The current registry package is
-0.1.0; neither its source nor its dependencies inherit the results of checks on
-the new candidate. A production deployment must select the reviewed version
-and follow the [migration guide](migrating-to-0.2.md).
-
-The intended release date is **2026-11-10**. Final validation and publication
-are tracked in [#51](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/51).
-The dated changelog records the planned release; registry availability must
-still be confirmed after the protected publishing workflow succeeds.
+Version **0.2.0 was published on 2026-11-16** from tag `v0.2.0`, commit
+`997c0cedf8e843d6a65f73ce95588034db401175`. Final validation, protected
+publication, and the registry archive checksum are recorded in
+[#51](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/51).
+Preparation occurred on 2026-11-10, the date retained in the tagged changelog.
+The older 0.1.0 package does not inherit these fixes or validation results.
+Follow the [migration guide](migrating-to-0.2.md) when upgrading.
 
 ## Release Boundary
 
@@ -83,7 +81,7 @@ each release. GitHub preflight success alone is insufficient. A token exchange
 and crate publication are not required to test or claim these configuration
 checks; do not publish a test version for validation.
 
-## Remaining Release Actions
+## Publication and Future Releases
 
 The Trusted Publisher required by
 [#14](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/14) was saved
@@ -94,10 +92,12 @@ records the inspection. Repeat the GitHub preflight and inspect every registry
 entry before approving a release; unexpected or unrestricted entries require
 investigation.
 
-After the readiness changes are reviewed and merged, choose the exact release
-commit and follow the [release checklist](release-checklist.md). Update the
-release date and published-version wording as part of the release preparation,
-run the final locked gates on that source, and only then create its matching
-version tag. Review the retained validation bundle before the protected
-publication approval. This record does not create a release, move a tag, or
-publish a crate, and it does not promise that undiscovered defects are absent.
+The 0.2.0 publication is complete. The validated package, audited lockfile,
+checksums, and workflow links are retained with #51. The tagged package keeps
+its pre-publication wording; current repository documentation records confirmed
+availability. Do not move the tag or republish the same version to change prose.
+
+For future releases, follow the [release checklist](release-checklist.md) on a
+new reviewed source commit. Repeat external-control checks and inspect the
+retained validation bundle before the protected publication approval. A past
+successful release does not certify a new source or dependency resolution.

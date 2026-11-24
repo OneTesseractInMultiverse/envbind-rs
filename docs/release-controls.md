@@ -213,6 +213,28 @@ requested and no package was published during this verification. The final
 release still requires the checks and approval in the
 [release checklist](release-checklist.md).
 
+## Publication Verification on 2026-11-16
+
+The GitHub preflight and authenticated registry inspection again matched the
+documented controls. Exactly one publisher remained scoped to this repository,
+`publish.yml`, and the `crates-io` environment. The separate API-token policy
+was unchanged.
+
+The [validation-only run](https://github.com/OneTesseractInMultiverse/envbind-rs/actions/runs/43899193182)
+passed with publishing skipped. The subsequent
+[publication run](https://github.com/OneTesseractInMultiverse/envbind-rs/actions/runs/43900035221)
+waited at the protected environment. Its source, lock, audit, and package
+checksums were inspected before approval; its archive matched the earlier run
+byte for byte. The workflow then reproduced that archive, authenticated through
+the scoped Trusted Publisher, and published envbind 0.2.0 successfully.
+
+The crates.io index and downloaded archive both match SHA-256
+`b8df6f9381bce3845baa7e617b15e50b51d2b4381e734eeae0eaeb3bb244620a`.
+The release source is `997c0cedf8e843d6a65f73ce95588034db401175`, tagged
+`v0.2.0`. [Issue #51](https://github.com/OneTesseractInMultiverse/envbind-rs/issues/51)
+records the retained evidence. This run verifies a real token exchange and
+publication in addition to the earlier configuration-only checks.
+
 ## References
 
 - [GitHub deployment environments](https://docs.github.com/en/actions/how-tos/deploy/configure-and-manage-deployments/manage-environments)

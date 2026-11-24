@@ -11,12 +11,12 @@ the documented repository, workflow, and environment. Resolve drift before
 creating a release tag. Release tags cannot be updated or deleted under the
 normal protection policy.
 
-For the upcoming 0.2.0 release, use the
+The published 0.2.0 release is documented in the
 [readiness record](release-readiness.md) and
-[migration guide](migrating-to-0.2.md). This release contains stricter URL and
-process-name validation; do not publish it as a 0.1.x patch. The published
-registry currently contains 0.1.0, and the former 0.1.1 metadata change was
-never published. Recheck registry state before selecting a release tag.
+[migration guide](migrating-to-0.2.md). It contains stricter URL and process-name
+validation and therefore used a new pre-1.0 minor line. The former 0.1.1
+metadata change was never published. Recheck registry state and choose a new
+unused version before preparing another release; do not reuse `v0.2.0`.
 
 Update `version` in `Cargo.toml`, the local package entry in `fuzz/Cargo.lock`,
 and `CHANGELOG.md`. Confirm that
@@ -93,9 +93,10 @@ verification fails, rerun validation instead of bypassing the integrity checks.
 Confirm that `SECURITY.md` lists the private report address. Confirm that
 README links use relative paths for repository docs.
 
-Keep 0.2.0 marked unreleased during candidate review. Record the intended
-release date in the final release-preparation commit and validate that exact
-source before tagging. Keep installation and support wording conditional until
-registry publication is confirmed; then update availability and the
-supported-version table. Do not label the old published 0.1.0 artifact as
-covered by the new candidate's validation.
+Keep new versions marked unreleased during candidate review. Record the
+intended date in the final release-preparation commit and validate that exact
+source before tagging. Keep availability claims conditional until registry
+publication is confirmed; then record the actual publication date and update
+installation and supported-version wording. Preserve the immutable release
+source if the preparation and publication dates differ. Earlier artifacts do
+not inherit validation results from a newer release.

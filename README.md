@@ -65,7 +65,7 @@ limits. Add the dependency:
 
 ```toml
 [dependencies]
-envbind = "0.2.0"
+envbind = "0.2.1"
 ```
 
 Then import the Rust crate name:
@@ -374,8 +374,9 @@ the release checklist below for locked release validation.
 Follow the [release checklist](docs/release-checklist.md) to audit one dependency
 resolution and run the checks, package verification, and publishing dry run with
 that lockfile. Record the exact commit and validation results. The
-[0.2.0 readiness record](docs/release-readiness.md) tracks support limits and
-remaining release actions, including validation of the final release source.
+[0.2.0 readiness record](docs/release-readiness.md) documents the review of the
+0.2 series. The [publishing record](docs/publishing.md#current-registry-status)
+links to the workflow and package checksum for the latest patch.
 
 The package includes source, tests, examples, docs, and the MIT license. It excludes build output and machine-specific
 files.

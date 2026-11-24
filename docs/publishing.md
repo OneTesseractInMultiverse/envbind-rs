@@ -132,6 +132,15 @@ configuration recovery and safe approval-gate testing.
 
 ## Current Registry Status
 
+Version [0.2.1](https://crates.io/crates/envbind/0.2.1) was published on
+2026-11-24 from tag `v0.2.1`, commit
+`338b90417dcbb5c377305dbff8edc4db6d2b7db8`. The registry identifies the
+[protected publishing run](https://github.com/OneTesseractInMultiverse/envbind-rs/actions/runs/45441520703)
+as the publisher. The downloaded crate matches the package in the
+[release validation bundle](https://github.com/OneTesseractInMultiverse/envbind-rs/releases/download/v0.2.1/envbind-0.2.1-validation.zip)
+byte for byte. Its SHA-256 is
+`aefac05bd189697181e7581fb4b833680b26a9a8ee503c39cb28fe15b0603be7`.
+
 Version [0.2.0](https://crates.io/crates/envbind/0.2.0) was published on
 2026-11-16 from tag `v0.2.0`, commit
 `997c0cedf8e843d6a65f73ce95588034db401175`. The protected workflow used the
@@ -140,9 +149,8 @@ validated release bundle; [#51](https://github.com/OneTesseractInMultiverse/envb
 records the workflow and artifact evidence. Version 0.1.0 remains historical;
 0.1.1 was never published.
 
-Recheck external settings before each future release using the
-[release-control runbook](release-controls.md). Do not dispatch publishing
-again for the immutable 0.2.0 version.
+Choose an unused version for each release and recheck external settings using
+the [release-control runbook](release-controls.md).
 
 ## Routine Release
 
